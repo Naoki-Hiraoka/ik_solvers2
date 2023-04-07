@@ -1,3 +1,3 @@
-# ik_solvers
+# ik_solvers2
 
-This repository is deprecated. moved to https://github.com/Naoki-Hiraoka/ik_solvers2
+rewrited version of https://github.com/Naoki-Hiraoka/ik_solvers

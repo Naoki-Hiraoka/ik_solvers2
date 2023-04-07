@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>prioritized_inverse_kinematics_solver2</name>
+  <version>0.0.0</version>
+  <description>The prioritized_inverse_kinematics_solver2 package</description>
+
+  <maintainer email="hiraoka@jsk.imi.i.u-tokyo.ac.jp">Naoki-Hiraoka</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>ik_constraint2</depend>
+  <depend>prioritized_qp_osqp</depend>
+  <depend>choreonoid</depend>
+
+</package>
