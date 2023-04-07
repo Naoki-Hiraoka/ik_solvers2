@@ -11,8 +11,8 @@ namespace ik_constraint2{
 
     // A_linkとB_linkの干渉を回避する
     //  tolerance: この値以上離す[m]
+    //  precision: 収束判定の閾値. distance - torelanceと比べる
     //  maxError: エラーの頭打ち
-    //  precision: 収束判定の閾値
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
     //  velocityDamper: 不等式制約の差分をこの値分の1にする. maxErrorの適用前に適用する.
     //状態が更新される度に, 手動でcalcForwardKinematics()を呼ぶ必要が有る.
@@ -32,10 +32,10 @@ namespace ik_constraint2{
     const double& velocityDamper() const { return velocityDamper_;}
     double& velocityDamper() { return velocityDamper_;}
 
-    bool checkConvergence () override;
-    const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobianineq (const std::vector<cnoid::LinkPtr>& joints) override;
-    const Eigen::VectorXd& calc_minineq () override;
-    const Eigen::VectorXd& calc_maxineq () override;
+    //内部状態更新
+    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 達成判定
+    virtual bool isSatisfied () const override;
 
   protected:
     //A_v, B_vはlocal系
@@ -53,6 +53,7 @@ namespace ik_constraint2{
     cnoid::Vector3 A_currentLocalp_ = cnoid::Vector3::Zero();
     cnoid::Vector3 B_currentLocalp_ = cnoid::Vector3::Zero();
     cnoid::Vector3 currentDirection_ = cnoid::Vector3::UnitX();
+    double currentDistance_ = 0.0;
 
     std::vector<cnoid::LinkPtr> path_A_joints_;
     std::vector<cnoid::LinkPtr> path_B_joints_;
@@ -62,8 +63,6 @@ namespace ik_constraint2{
     cnoid::LinkPtr jacobianineq_B_link_ = nullptr;// 前回のjacobian計算時のB_link
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_full_;
 
-    std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
     std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
 

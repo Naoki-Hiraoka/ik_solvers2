@@ -10,37 +10,23 @@ namespace ik_constraint2{
   {
   }
 
-  bool CollisionConstraint::checkConvergence () {
-    // 収束判定と、ついでにcalc_minineq/maxineqの返り値の計算
+  void CollisionConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+    // minIneq/maxIneqの計算
+    if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
+    if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
 
-    if(this->minineq_.rows()!=1) this->minineq_ = Eigen::VectorXd::Zero(1);
-    if(this->maxineq_.rows()!=1) this->maxineq_ = Eigen::VectorXd::Zero(1);
-
-    double distance;
-    bool ret;
     if(!this->computeDistance(this->A_link_, this->B_link_,
-                              distance, this->currentDirection_, this->A_currentLocalp_,this->B_currentLocalp_)){
-      this->minineq_[0] = -1e10;
-      this->maxineq_[0] = 1e10;
-      ret = true;
+                              this->currentDistance_, this->currentDirection_, this->A_currentLocalp_,this->B_currentLocalp_)){
+      this->minIneq_[0] = -1e10;
+      this->maxIneq_[0] = 1e10;
     }else{
-      this->minineq_[0] = std::min((this->tolerance_ - distance) / this->velocityDamper_, this->maxError_) * this->weight_;
-      this->maxineq_[0] = 1e10;
-
-      ret =  distance - this->tolerance_ > - this->precision_;
+      this->minIneq_[0] = std::min((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, this->maxError_) * this->weight_;
+      this->maxIneq_[0] = 1e10;
     }
 
-    if(this->debuglevel_>=1){
-      std::cerr << "CollisionConstraint " << this->A_link_->name() << " - " << this->B_link_->name() << std::endl;
-      std::cerr << "distance: " << distance << std::endl;
-    }
-
-    return ret;
-  }
-
-  const Eigen::SparseMatrix<double,Eigen::RowMajor>& CollisionConstraint::calc_jacobianineq (const std::vector<cnoid::LinkPtr>& joints) {
+    // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
-    if(!this->is_joints_same(joints,this->jacobianineq_joints_)
+    if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_)
        || this->A_link_ != this->jacobianineq_A_link_
        || this->B_link_ != this->jacobianineq_B_link_){
       this->jacobianineq_joints_ = joints;
@@ -78,37 +64,23 @@ namespace ik_constraint2{
 
     Eigen::SparseMatrix<double,Eigen::RowMajor> dir(3,1);
     for(int i=0;i<3;i++) dir.insert(i,0) = this->currentDirection_[i];
-    this->jacobianineq_ = dir.transpose() * this->jacobianineq_full_.topRows<3>() * this->weight_;
+    this->jacobianIneq_ = dir.transpose() * this->jacobianineq_full_.topRows<3>() * this->weight_;
 
-    if(this->debuglevel_>=1){
+
+    if(this->debugLevel_>=1){
       std::cerr << "CollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
+      std::cerr << "distance: " << this->currentDistance_ << std::endl;
       std::cerr << "direction" << std::endl;
-      std::cerr << dir << std::endl;
+      std::cerr << dir.transpose() << std::endl;
       std::cerr << "jacobianineq" << std::endl;
-      std::cerr << this->jacobianineq_ << std::endl;
+      std::cerr << this->jacobianIneq_ << std::endl;
     }
-    return this->jacobianineq_;
+
+    return;
   }
 
-
-  const Eigen::VectorXd& CollisionConstraint::calc_minineq () {
-    if(this->debuglevel_>=1){
-      std::cerr << "CollisionConstraint" << std::endl;
-      std::cerr << "minineq" << std::endl;
-      std::cerr << this->minineq_ << std::endl;
-    }
-
-    return this->minineq_;
-  }
-
-  const Eigen::VectorXd& CollisionConstraint::calc_maxineq () {
-    if(this->debuglevel_>=1){
-      std::cerr << "CollisionConstraint" << std::endl;
-      std::cerr << "maxineq" << std::endl;
-      std::cerr << this->maxineq_ << std::endl;
-    }
-
-    return this->maxineq_;
+  bool CollisionConstraint::isSatisfied() const{
+    return this->currentDistance_-this->tolerance_ < this->precision_;
   }
 
 }

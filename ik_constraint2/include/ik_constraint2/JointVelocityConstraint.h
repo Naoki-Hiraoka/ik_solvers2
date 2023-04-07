@@ -10,9 +10,9 @@ namespace ik_constraint2{
   public:
     //jointのdqを上下限以下にする. radの次元で評価する
     //  dt: [s]
+    //  precision: 収束判定の閾値[rad].
     //  maxError: エラーの頭打ち[rad]
     //  weight: コスト関数の重み. error * weight^2 * error.
-    //  precision: 収束判定の閾値[rad]. error * weightのノルムと比べる
 
     const cnoid::LinkPtr& joint() const { return joint_;}
     cnoid::LinkPtr& joint() { return joint_;}
@@ -34,7 +34,7 @@ namespace ik_constraint2{
   private:
     cnoid::LinkPtr joint_ = nullptr;
     double dt_ = 0.1;
-    double precision_ = 1e10;
+    double precision_ = 1e-3;
     double maxError_ = 1e-2;
     double weight_ = 1.0;
 

@@ -42,7 +42,7 @@ add_library(${PROJECT_NAME}
   src/JointAngleConstraint.cpp
   src/JointLimitConstraint.cpp
   src/JointVelocityConstraint.cpp
-  #src/CollisionConstraint.cpp
+  src/CollisionConstraint.cpp
   #src/ClientCollisionConstraint.cpp
 )
 
