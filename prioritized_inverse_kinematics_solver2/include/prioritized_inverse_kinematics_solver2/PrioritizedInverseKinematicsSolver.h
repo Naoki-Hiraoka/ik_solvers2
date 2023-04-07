@@ -11,6 +11,8 @@ namespace prioritized_inverse_kinematics_solver2 {
     variables: 動かして良いjoint (free jointは6DOF扱い)
     ikc_list: タスクたち. vectorの前の要素の方が高優先度. 0番目の要素は必ず満たすと仮定しQPを解かない
     prevTasks: 前回のtasksを入れる. 自動的に更新される.
+
+    返り値: 各constraintを満たしているかどうか
    */
   class IKParam {
   public:
@@ -22,8 +24,10 @@ namespace prioritized_inverse_kinematics_solver2 {
     std::vector<double> weVec; // weVec.size() == ikc_list.size()の場合、weの代わりにこっちを使う
     int debugLevel = 0;
     double dt = 0.1;
+    bool calcVelocity = true; // dtを用いて速度の計算をするかどうか. 速度を利用するconstraintがあるなら必須. ないなら、falseにすると高速化が見込まれる
+    bool checkFinalState = true; // maxIteration番目のloop後に、各constraintを満たしているかどうかの判定を行うかどうか. 行わない場合、falseが返る.
   };
-  int solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
+  bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
                    const IKParam& param = IKParam(),

@@ -7,22 +7,29 @@
 #include <cnoid/TimeMeasure>
 
 namespace prioritized_inverse_kinematics_solver2 {
-  bool checkIKConvergence(const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list) {
+  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list){
+    for ( int i=0; i<ikc_list.size(); i++ ) {
+      for(size_t j=0;j<ikc_list[i].size(); j++){
+        ikc_list[i][j]->update(variables);
+      }
+    }
+  }
+
+  inline bool checkConstraintsSatisfied(const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list) {
     bool converged = true;
     for ( int i=0; i<ikc_list.size(); i++ ) {
       for(size_t j=0;j<ikc_list[i].size(); j++){
-        // checkConvergence()の結果をキャッシュして後に利用するものがあるので、全IKConstraintに対してcheckConvergence()を呼んでおく必要が有る.
-        if (!ikc_list[i][j]->checkConvergence()) converged = false;
+        if (!ikc_list[i][j]->isSatisfied()) converged = false;
       }
     }
     return converged;
   }
 
-  void solveIKOnce (const std::vector<cnoid::LinkPtr>& variables,
-                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
-                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
-                    const IKParam& param,
-                    std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc) {
+  inline void solveIKOnce (const std::vector<cnoid::LinkPtr>& variables,
+                           const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                           std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
+                           const IKParam& param,
+                           std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc) {
     // Solvability-unconcerned Inverse Kinematics by Levenberg-Marquardt Method [sugihara:RSJ2009]
     // H = J^T * We * J + Wn
     // Wn = (e^T * We * e + \bar{wn}) * Wq // Wq: modify to insert dq weight
@@ -53,11 +60,11 @@ namespace prioritized_inverse_kinematics_solver2 {
       std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianineqs;jacobianineqs.reserve(ikc_list[i].size());
 
       for(size_t j=0; j<ikc_list[i].size(); j++){
-        errors.emplace_back(ikc_list[i][j]->calc_error());
-        jacobians.emplace_back(ikc_list[i][j]->calc_jacobian(variables));
-        jacobianineqs.emplace_back(ikc_list[i][j]->calc_jacobianineq(variables));
-        minineqs.emplace_back(ikc_list[i][j]->calc_minineq());
-        maxineqs.emplace_back(ikc_list[i][j]->calc_maxineq());
+        errors.emplace_back(ikc_list[i][j]->getEq());
+        jacobians.emplace_back(ikc_list[i][j]->getJacobian());
+        jacobianineqs.emplace_back(ikc_list[i][j]->getJacobianIneq());
+        minineqs.emplace_back(ikc_list[i][j]->getMinIneq());
+        maxineqs.emplace_back(ikc_list[i][j]->getMaxIneq());
 
         num_eqs += errors[j].get().rows();
         num_ineqs += minineqs[j].get().rows();
@@ -75,7 +82,7 @@ namespace prioritized_inverse_kinematics_solver2 {
       int idx_ineq = 0;
       for(size_t j=0;j<ikc_list[i].size(); j++){
         prevTasks[i]->A().middleRows(idx_eq,errors[j].get().rows()) = jacobians[j].get();
-        prevTasks[i]->b().segment(idx_eq,errors[j].get().rows()) = - errors[j].get();
+        prevTasks[i]->b().segment(idx_eq,errors[j].get().rows()) = errors[j].get();
         idx_eq += errors[j].get().rows();
 
         prevTasks[i]->C().middleRows(idx_ineq,minineqs[j].get().rows()) = jacobianineqs[j].get();
@@ -150,7 +157,7 @@ namespace prioritized_inverse_kinematics_solver2 {
     double q;
   };
 
-  int solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
+  bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
                    const IKParam& param,
@@ -169,6 +176,32 @@ namespace prioritized_inverse_kinematics_solver2 {
 
     size_t loop = 0;
     while (loop < param.maxIteration) {
+      if(param.calcVelocity){
+        for(size_t i=0;i<variables.size();i++){
+          if(variables[i]->isFreeJoint()) {
+            cnoid::Position& initialT = initialJointStateMap[variables[i]].T;
+            variables[i]->v() = (variables[i]->p() - initialT.translation()) / param.dt;
+            cnoid::AngleAxis angleAxis = cnoid::AngleAxis(variables[i]->R() * initialT.linear().transpose());
+            variables[i]->w() = angleAxis.angle()*angleAxis.axis() / param.dt;
+          }
+          else if(variables[i]->isRotationalJoint() || variables[i]->isPrismaticJoint()) {
+            double initialq = initialJointStateMap[variables[i]].q;
+            variables[i]->dq() = (variables[i]->q() - initialq) / param.dt;
+        }
+        }
+      }
+      for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
+        (*it)->calcForwardKinematics(param.calcVelocity);
+        (*it)->calcCenterOfMass();
+      }
+
+      updateConstraints(variables, ikc_list);
+      if (checkConstraintsSatisfied(ikc_list)) return true;
+      solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
+      ++loop;
+    }
+
+    if(param.calcVelocity){
       for(size_t i=0;i<variables.size();i++){
         if(variables[i]->isFreeJoint()) {
           cnoid::Position& initialT = initialJointStateMap[variables[i]].T;
@@ -181,33 +214,18 @@ namespace prioritized_inverse_kinematics_solver2 {
           variables[i]->dq() = (variables[i]->q() - initialq) / param.dt;
         }
       }
-      for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
-        (*it)->calcForwardKinematics(true);
-        (*it)->calcCenterOfMass();
-      }
-
-      if (checkIKConvergence(ikc_list)) return loop;
-      solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
-      ++loop;
-    }
-
-    for(size_t i=0;i<variables.size();i++){
-      if(variables[i]->isFreeJoint()) {
-        cnoid::Position& initialT = initialJointStateMap[variables[i]].T;
-        variables[i]->v() = (variables[i]->p() - initialT.translation()) / param.dt;
-        cnoid::AngleAxis angleAxis = cnoid::AngleAxis(variables[i]->R() * initialT.linear().transpose());
-        variables[i]->w() = angleAxis.angle()*angleAxis.axis() / param.dt;
-      }
-      else if(variables[i]->isRotationalJoint() || variables[i]->isPrismaticJoint()) {
-        double initialq = initialJointStateMap[variables[i]].q;
-        variables[i]->dq() = (variables[i]->q() - initialq) / param.dt;
-      }
     }
     for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
-      (*it)->calcForwardKinematics(true);
+      (*it)->calcForwardKinematics(param.calcVelocity);
       (*it)->calcCenterOfMass();
     }
 
-    return loop;
+    if(param.checkFinalState){
+      updateConstraints(variables, ikc_list);
+      if (checkConstraintsSatisfied(ikc_list)) return true;
+      else return false;
+    }else{
+      return false;
+    }
   }
 }

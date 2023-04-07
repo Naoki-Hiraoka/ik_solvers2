@@ -98,23 +98,24 @@ int main(void){
   std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > > constraints{constraints0,constraints1,constraints2,constraints3};
   for(size_t i=0;i<constraints.size();i++){
     for(size_t j=0;j<constraints[i].size();j++){
-      constraints[i][j]->debuglevel() = 1;//debug
+      constraints[i][j]->debugLevel() = 1;//debug
     }
   }
   prioritized_inverse_kinematics_solver2::IKParam param;
   param.debugLevel = 1;
   param.maxIteration = 40;
-  int loop = prioritized_inverse_kinematics_solver2::solveIKLoop(variables,
-                                                                constraints,
-                                                                tasks,
-                                                                param);
+  bool solved = prioritized_inverse_kinematics_solver2::solveIKLoop(variables,
+                                                                    constraints,
+                                                                    tasks,
+                                                                    param);
 
-  std::cerr << "loop: " << loop << std::endl;
+  std::cerr << "solved: " << solved << std::endl;
 
   for(size_t i=0;i<constraints.size();i++){
     for(size_t j=0;j<constraints[i].size();j++){
-      constraints[i][j]->debuglevel() = 0;//not debug
-      if(constraints[i][j]->checkConvergence()) std::cerr << "constraint " << i << " " << j << ": converged"<< std::endl;
+      constraints[i][j]->debugLevel() = 0;//not debug
+      constraints[i][j]->update(variables);
+      if(constraints[i][j]->isSatisfied()) std::cerr << "constraint " << i << " " << j << ": converged"<< std::endl;
       else std::cerr << "constraint " << i << ": NOT converged"<< std::endl;
     }
   }
