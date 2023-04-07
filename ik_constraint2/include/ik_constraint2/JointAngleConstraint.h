@@ -10,8 +10,8 @@ namespace ik_constraint2{
   public:
     //jointのqとtargetqを一致させる.
     //  maxError: エラーの頭打ち
-    //  precision: 収束判定の閾値
     //  weight: コスト関数の重み. error * weight^2 * error.
+    //  precision: 収束判定の閾値. error * weightのノルムと比べる
 
     const cnoid::LinkPtr& joint() const { return joint_;}
     cnoid::LinkPtr& joint() { return joint_;}
@@ -24,14 +24,15 @@ namespace ik_constraint2{
     const double& weight() const { return weight_;}
     double& weight() { return weight_;}
 
-    bool checkConvergence () override;
-    const Eigen::VectorXd& calc_error () override;
-    const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobian (const std::vector<cnoid::LinkPtr>& joints) override;
+    //内部状態更新
+    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 達成判定
+    virtual bool isSatisfied () const override;
 
   private:
     cnoid::LinkPtr joint_ = nullptr;
     double targetq_ = 0.0;
-    double precision_ = 1e10;
+    double precision_ = 1e-4;
     double maxError_ = 1e-2;
     double weight_ = 1.0;
 
@@ -39,8 +40,6 @@ namespace ik_constraint2{
 
     std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
-    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
 
   };
 }

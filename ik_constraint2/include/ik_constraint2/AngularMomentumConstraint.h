@@ -11,7 +11,7 @@ namespace ik_constraint2{
   {
   public:
     //robotの重心周りの角運動量を目標の値[kg m^2/s]に一致させる
-    //  内部の処理では角運動量を重心周りのイナーシャで割って、[rad/s]の次元で扱う
+    //  内部の処理では角運動量を重心周りのイナーシャで割ってdtでかけて、[rad]の次元で扱う
     //  dt: [s]
     //  maxError: エラーの頭打ち[rad]
     //  weight: コスト関数の重み. error * weight^2 * error.
@@ -57,8 +57,6 @@ namespace ik_constraint2{
 
     std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
-    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
 
 
     static void calcAngularMomentumJacobianShape(const std::vector<cnoid::LinkPtr>& joints,//input

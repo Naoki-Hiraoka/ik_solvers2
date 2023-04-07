@@ -63,7 +63,7 @@ namespace ik_constraint2{
     int idx=0;
     for(size_t i=0; i<6; i++){
       if(this->weight_[i]>0.0) {
-        this->eq_[idx] = std::min(std::max(error_eval[i],-this->maxError_[i]),this->maxError_[i]) * this->weight_[i];
+        this->eq_[idx] = std::min(std::max(-error_eval[i],-this->maxError_[i]),this->maxError_[i]) * this->weight_[i];
         idx++;
       }
     }

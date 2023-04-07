@@ -2,37 +2,20 @@
 #include <iostream>
 
 namespace ik_constraint2{
-  bool JointAngleConstraint::checkConvergence () {
-    if(!this->joint_) return true;
-
-    double error = std::min(std::max(this->joint_->q() - targetq_,-this->maxError_), this->maxError_);
-
-    if(this->error_.rows() != 1) this->error_ = Eigen::VectorXd(1);
-    this->error_[0] = this->weight_ * error;
-
-    if(this->debuglevel_>=1){
-      std::cerr << "JointAngleConstraint" << std::endl;
-      std::cerr << "q" << std::endl;
-      std::cerr << this->joint_->q() << std::endl;
-      std::cerr << "targetq" << std::endl;
-      std::cerr << this->targetq_ << std::endl;
+  void JointAngleConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+    if(!this->joint_) {
+      std::cerr << "[JointAngleConstraint::update] !this->joint_" << std::endl;
+      return;
     }
 
-    return std::fabs(error) < this->precision_;
-  }
+    double error = std::min(std::max(this->joint_->q() - targetq_,-this->maxError_), this->maxError_); // target - joint
 
-  const Eigen::VectorXd& JointAngleConstraint::calc_error () {
-    if(this->debuglevel_>=1){
-      std::cerr << "JointAngleConstraint" << std::endl;
-      std::cerr << "error" << std::endl;
-      std::cerr << this->error_ << std::endl;
-    }
+    // this->eqの計算 target - joint
+    if(this->eq_.rows() != 1) this->eq_ = Eigen::VectorXd(1);
+    this->eq_[0] = this->weight_ * -error;
 
-    return this->error_;
-  }
-
-  const Eigen::SparseMatrix<double,Eigen::RowMajor>& JointAngleConstraint::calc_jacobian (const std::vector<cnoid::LinkPtr>& joints) {
-    if(!this->is_joints_same(joints,this->jacobian_joints_) ||
+    // this->jacobian_の計算
+    if(!IKConstraint::isJointsSame(joints,this->jacobian_joints_) ||
        this->joint_ != this->jacobian_joint_){
       this->jacobian_joints_ = joints;
       this->jacobian_joint_ = this->joint_;
@@ -40,7 +23,7 @@ namespace ik_constraint2{
       int cols = 0;
       for(size_t i=0; i < this->jacobian_joints_.size(); i++){
         this->jacobianColMap_[this->jacobian_joints_[i]] = cols;
-        cols += this->getJointDOF(this->jacobian_joints_[i]);
+        cols += IKConstraint::getJointDOF(this->jacobian_joints_[i]);
       }
 
       this->jacobian_ = Eigen::SparseMatrix<double,Eigen::RowMajor>(1,cols);
@@ -59,11 +42,23 @@ namespace ik_constraint2{
       }
     }
 
-    if(this->debuglevel_>=1){
+    if(this->debugLevel_>=1){
       std::cerr << "JointAngleConstraint" << std::endl;
+      std::cerr << "q" << std::endl;
+      std::cerr << this->joint_->q() << std::endl;
+      std::cerr << "targetq" << std::endl;
+      std::cerr << this->targetq_ << std::endl;
+      std::cerr << "eq" << std::endl;
+      std::cerr << this->eq_.transpose() << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
     }
-    return this->jacobian_;
+
+    return;
   }
+
+  bool JointAngleConstraint::isSatisfied() const{
+    return this->eq_.norm() < this->precision_;
+  }
+
 }

@@ -144,7 +144,7 @@ namespace ik_constraint2{
       for(int i=0;i<this->robot_->numJoints();i++) dq[i] = this->robot_->joint(i)->dq();
       dq.segment<3>(this->robot_->numJoints()) = this->robot_->rootLink()->v();
       dq.tail<3>() = this->robot_->rootLink()->w();
-      cnoid::Vector3 error = this->eval_R_.transpose() * (this->targetAngularMomentum_ - AMJ * dq) * this->dt_; //eval_R系  [kg m^2]. target - current
+      cnoid::Vector3 error = this->eval_R_.transpose() * (AMJ * dq - this->targetAngularMomentum_) * this->dt_; //eval_R系  [kg m^2]. target - current
 
       cnoid::Matrix3 I = AMJ.block<3,3>(0,this->robot_->numJoints()+3); //world系
       cnoid::Matrix3 I_evalR = this->eval_R_.transpose() * I * this->eval_R_; //eval_R系
@@ -157,7 +157,7 @@ namespace ik_constraint2{
 
       // this->eq_を求める. target - current
       if(this->eq_.rows() != 3) this->eq_ = Eigen::VectorXd(3);
-      for(int i=0;i<3;i++) this->eq_[i] = std::max(std::min(error_scaled[i], this->maxError_[i]), -this->maxError_[i]) * this->weight_[i];
+      for(int i=0;i<3;i++) this->eq_[i] = std::max(std::min(-error_scaled[i], this->maxError_[i]), -this->maxError_[i]) * this->weight_[i];
 
       // this->jacobian_を求める
       // 行列の初期化. 前回とcol形状が変わっていないなら再利用

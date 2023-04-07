@@ -3,7 +3,7 @@
 
 namespace ik_constraint2{
   void COMConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
-    // A - B
+    // B - A
     cnoid::Vector3 A_p = this->A_robot_ ? this->A_robot_->centerOfMass() + this->A_localp() : this->A_localp();
     cnoid::Vector3 B_p = this->B_robot_ ? this->B_robot_->centerOfMass() + this->B_localp() : this->B_localp();
     cnoid::Vector3 error = A_p - B_p; // world
@@ -14,7 +14,7 @@ namespace ik_constraint2{
     int idx=0;
     for(size_t i=0; i<3; i++){
       if(this->weight_[i]>0.0) {
-        this->eq_[idx] = std::min(std::max(error_eval[i],-this->maxError_[i]),this->maxError_[i]) * this->weight_[i];
+        this->eq_[idx] = std::min(std::max(-error_eval[i],-this->maxError_[i]),this->maxError_[i]) * this->weight_[i];
         idx++;
       }
     }
