@@ -2,62 +2,38 @@
 #include <iostream>
 
 namespace ik_constraint2{
-  bool JointVelocityConstraint::checkConvergence () {
-    if(this->joint_) {
-      if (this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint()) {
-
-        double lower = (this->joint_->dq_lower() - this->joint_->dq()) * dt_;
-        double upper = (this->joint_->dq_upper() - this->joint_->dq()) * dt_;
-
-        if(this->minineq_.rows() != 1) this->minineq_ = Eigen::VectorXd(1);
-        this->minineq_[0] = std::min(lower, this->maxError_) * this->weight_;
-        if(this->maxineq_.rows() != 1) this->maxineq_ = Eigen::VectorXd(1);
-        this->maxineq_[0] = std::max(upper, -this->maxError_) * this->weight_;
-
-        if(this->debuglevel_>=1){
-          std::cerr << "JointVelocityConstraint" << std::endl;
-          std::cerr << "dq" << std::endl;
-          std::cerr << this->joint_->dq() << std::endl;
-          std::cerr << "dq_upper" << std::endl;
-          std::cerr << this->joint_->dq_upper() << std::endl;
-          std::cerr << "dq_lower" << std::endl;
-          std::cerr << this->joint_->dq_lower() << std::endl;
-        }
-
-        return lower<this->precision_ && upper>-this->precision_;
-      }else if (this->joint_->isFreeJoint()){
-        cnoid::Vector6 lower, upper;
-        lower.head<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_lower() - this->joint_->v()) * dt_;
-        lower.tail<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_lower() - this->joint_->w()) * dt_;
-        upper.head<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_upper() - this->joint_->v()) * dt_;
-        upper.tail<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_upper() - this->joint_->w()) * dt_;
-
-        if(this->minineq_.rows() != 6) this->minineq_ = Eigen::VectorXd(6);
-        for(size_t i=0;i<6;i++) this->minineq_[i] = std::min(lower[i], this->maxError_) * this->weight_;
-        if(this->maxineq_.rows() != 6) this->maxineq_ = Eigen::VectorXd(6);
-        for(size_t i=0;i<6;i++) this->maxineq_[i] = std::max(upper[i], -this->maxError_) * this->weight_;
-
-        if(this->debuglevel_>=1){
-          std::cerr << "JointVelocityConstraint" << std::endl;
-          std::cerr << "v" << std::endl;
-          std::cerr << this->joint_->v() << std::endl;
-          std::cerr << "w" << std::endl;
-          std::cerr << this->joint_->w() << std::endl;
-          std::cerr << "dq_upper" << std::endl;
-          std::cerr << this->joint_->dq_upper() << std::endl;
-          std::cerr << "dq_lower" << std::endl;
-          std::cerr << this->joint_->dq_lower() << std::endl;
-        }
-
-        return (lower.array()<this->precision_).count()==6 && (upper.array()>-this->precision_).count()==6;
-      }
+  void JointVelocityConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+    if(!this->joint_) {
+      std::cerr << "[JointVelocityConstraint::update] !this->joint_" << std::endl;
+      return;
     }
-    if(this->error_.rows() != 0) this->error_ = Eigen::VectorXd::Zero(0);
-    return true;
-  }
 
-  const Eigen::SparseMatrix<double,Eigen::RowMajor>& JointVelocityConstraint::calc_jacobianineq (const std::vector<cnoid::LinkPtr>& joints) {
-    if(!this->is_joints_same(joints,this->jacobianineq_joints_) ||
+
+    // this->minIneq_, maxIneq_
+    if (this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint()) {
+      double lower = (this->joint_->dq_lower() - this->joint_->dq()) * dt_;
+      double upper = (this->joint_->dq_upper() - this->joint_->dq()) * dt_;
+
+      if(this->minIneq_.rows() != 1) this->minIneq_ = Eigen::VectorXd(1);
+      this->minIneq_[0] = std::min(lower, this->maxError_) * this->weight_;
+      if(this->maxIneq_.rows() != 1) this->maxIneq_ = Eigen::VectorXd(1);
+      this->maxIneq_[0] = std::max(upper, -this->maxError_) * this->weight_;
+
+    }else if (this->joint_->isFreeJoint()){
+      cnoid::Vector6 lower, upper;
+      lower.head<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_lower() - this->joint_->v()) * dt_;
+      lower.tail<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_lower() - this->joint_->w()) * dt_;
+      upper.head<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_upper() - this->joint_->v()) * dt_;
+      upper.tail<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_upper() - this->joint_->w()) * dt_;
+
+      if(this->minIneq_.rows() != 6) this->minIneq_ = Eigen::VectorXd(6);
+      for(size_t i=0;i<6;i++) this->minIneq_[i] = std::min(lower[i], this->maxError_) * this->weight_;
+      if(this->maxIneq_.rows() != 6) this->maxIneq_ = Eigen::VectorXd(6);
+      for(size_t i=0;i<6;i++) this->maxIneq_[i] = std::max(upper[i], -this->maxError_) * this->weight_;
+    }
+
+    // this->jacobianIneq_
+    if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_) ||
        this->joint_ != this->jacobianineq_joint_){
       this->jacobianineq_joints_ = joints;
       this->jacobianineq_joint_ = this->joint_;
@@ -73,13 +49,11 @@ namespace ik_constraint2{
       else if (this->joint_->isFreeJoint()) rows = 6;
       else rows = 0;
 
-      this->jacobianineq_ = Eigen::SparseMatrix<double,Eigen::RowMajor>(rows,cols);
+      this->jacobianIneq_ = Eigen::SparseMatrix<double,Eigen::RowMajor>(rows,cols);
 
       if(this->jacobianineqColMap_.find(this->jacobianineq_joint_) != this->jacobianineqColMap_.end()){
-        if(this->jacobianineq_joint_->isRotationalJoint() || this->jacobianineq_joint_->isPrismaticJoint()){
-          for(size_t i=0;i<rows;i++){
-            this->jacobianineq_.insert(rows,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = 1;
-          }
+        for(size_t i=0;i<rows;i++){
+          this->jacobianIneq_.insert(rows,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = 1;
         }
       }
 
@@ -92,36 +66,37 @@ namespace ik_constraint2{
       else rows = 0;
 
       for(size_t i=0;i<rows;i++){
-        this->jacobianineq_.coeffRef(i,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = this->weight_;
+        this->jacobianIneq_.coeffRef(i,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = this->weight_;
       }
     }
 
-    if(this->debuglevel_>=1){
-      std::cerr << "JointVelocityConstraint" << std::endl;
-      std::cerr << "jacobianineq" << std::endl;
-      std::cerr << this->jacobianineq_ << std::endl;
-    }
-    return this->jacobianineq_;
-  }
+    // this->jacobian_のサイズだけそろえる
+    this->jacobian_.resize(0,this->jacobianIneq_.cols());
 
-  const Eigen::VectorXd& JointVelocityConstraint::calc_minineq () {
-    if(this->debuglevel_>=1){
-      std::cerr << "JointVelocityConstraint" << std::endl;
-      std::cerr << "minineq" << std::endl;
-      std::cerr << this->minineq_ << std::endl;
-    }
 
-    return this->minineq_;
-  }
-
-  const Eigen::VectorXd& JointVelocityConstraint::calc_maxineq () {
-    if(this->debuglevel_>=1){
+    if(this->debugLevel_>=1){
       std::cerr << "JointVelocityConstraint" << std::endl;
-      std::cerr << "maxineq" << std::endl;
-      std::cerr << this->maxineq_ << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+      std::cerr << "jacobianIneq" << std::endl;
+      std::cerr << this->jacobianIneq_ << std::endl;
     }
 
-    return this->maxineq_;
+    return;
   }
+
+  bool JointVelocityConstraint::isSatisfied() const{
+    double cost2=0.0;
+    for(int i=0;i<this->minIneq_.size();i++){
+      if(this->minIneq_[i] > 0.0) cost2 += std::pow(this->minIneq_[i], 2);
+    }
+    for(int i=0;i<this->maxIneq_.size();i++){
+      if(this->maxIneq_[i] < 0.0) cost2 += std::pow(this->maxIneq_[i], 2);
+    }
+    return cost2 < std::pow(this->precision_,2);
+  }
+
 
 }

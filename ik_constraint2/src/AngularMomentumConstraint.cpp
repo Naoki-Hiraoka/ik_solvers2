@@ -188,6 +188,8 @@ namespace ik_constraint2{
       this->jacobian_ = I_evalR_inv_sparse * eval_R_sparse.transpose() * this->jacobian_full_;
       for(size_t i=0;i<3;i++) this->jacobian_.row(i) *= this->weight_[i];
 
+      // this->jacobianIneq_のサイズだけそろえる
+      this->jacobianIneq_.resize(0,this->jacobian_.cols());
 
       if(this->debugLevel_>=1){
         std::cerr << "AngularMomentumConstraint" << std::endl;

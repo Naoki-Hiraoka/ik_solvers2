@@ -116,6 +116,9 @@ namespace ik_constraint2{
       }
     }
 
+    // this->jacobianIneq_のサイズだけそろえる
+    this->jacobianIneq_.resize(0,this->jacobian_.cols());
+
     if(this->debugLevel_>=1){
       std::cerr << "PositionConstraint" << std::endl;
       std::cerr << "A_pos" << std::endl;
