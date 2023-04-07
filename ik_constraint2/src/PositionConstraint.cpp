@@ -135,7 +135,7 @@ namespace ik_constraint2{
     return;
   }
 
-  bool PositionConstraint::isSatisfied () {
+  bool PositionConstraint::isSatisfied () const {
     return this->eq_.norm() < this->precision_;
   }
 

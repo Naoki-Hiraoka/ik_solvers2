@@ -35,7 +35,7 @@ endforeach(lib)
 add_library(${PROJECT_NAME}
   src/Jacobian.cpp
   src/PositionConstraint.cpp
-  #src/COMConstraint.cpp
+  src/COMConstraint.cpp
   #src/COMVelocityConstraint.cpp
   #src/AngularMomentumConstraint.cpp
   #src/AngularMomentumLimitConstraint.cpp

@@ -16,8 +16,8 @@ namespace ik_constraint2{
     {}
     //robotの重心をworld座標系のtargetPosに位置させる.
     //  maxError: エラーの頭打ち
-    //  precision: 収束判定の閾値
     //  weight: コスト関数の重み. error * weight^2 * error. 0の成分はjacobianやerrorに含まれない
+    //  precision: 収束判定の閾値. error * weightのノルムとこれを比べる
     //状態が更新される度に, 手動でcalcForwardKinematics()とcalcCenterOfMass()を呼ぶ必要が有る.
     const cnoid::BodyPtr& A_robot() const { return A_robot_;}
     cnoid::BodyPtr& A_robot() { return A_robot_;}
@@ -33,8 +33,8 @@ namespace ik_constraint2{
     // for equality
     const cnoid::Vector3& maxError() const { return maxError_;}
     cnoid::Vector3& maxError() { return maxError_;}
-    const cnoid::Vector3& precision() const { return precision_;}
-    cnoid::Vector3& precision() { return precision_;}
+    const double& precision() const { return precision_;}
+    double& precision() { return precision_;}
     const cnoid::Vector3& weight() const { return weight_;}
     cnoid::Vector3& weight() { return weight_;}
 
@@ -47,17 +47,13 @@ namespace ik_constraint2{
     cnoid::VectorX& du() { return du_;}
     const cnoid::VectorX& maxCError() const { return maxCError_;}
     cnoid::VectorX& maxCError() { return maxCError_;}
-    const cnoid::VectorX& CPrecision() const { return CPrecision_;}
-    cnoid::VectorX& CPrecision() { return CPrecision_;}
+    const double& CPrecision() const { return CPrecision_;}
+    double& CPrecision() { return CPrecision_;}
 
     // 収束判定
-    bool checkConvergence () override;
+    void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    bool isSatisfied() const override;
 
-    const Eigen::VectorXd& calc_error () override;
-    const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobian (const std::vector<cnoid::LinkPtr>& joints) override;
-    const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobianineq (const std::vector<cnoid::LinkPtr>& joints) override;
-    const Eigen::VectorXd& calc_minineq () override;
-    const Eigen::VectorXd& calc_maxineq () override;
   protected:
     cnoid::BodyPtr A_robot_ = nullptr;
     cnoid::Vector3 A_localp_ = cnoid::Vector3::Zero();
@@ -66,14 +62,14 @@ namespace ik_constraint2{
     cnoid::Matrix3d eval_R_ = cnoid::Matrix3d::Identity();
 
     cnoid::Vector3 maxError_ = 0.1 * cnoid::Vector3::Ones();
-    cnoid::Vector3 precision_ = 1e-4 * cnoid::Vector3::Ones();
+    double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 
     Eigen::SparseMatrix<double,Eigen::RowMajor> C_;
     cnoid::VectorX dl_;
     cnoid::VectorX du_;
     cnoid::VectorX maxCError_;
-    cnoid::VectorX CPrecision_;
+    double CPrecision_ = 1e-4;
 
     cnoid::BodyPtr jacobian_A_robot_ = nullptr;// 前回のjacobian計算時のrobot
     cnoid::BodyPtr jacobian_B_robot_ = nullptr;// 前回のjacobian計算時のrobot

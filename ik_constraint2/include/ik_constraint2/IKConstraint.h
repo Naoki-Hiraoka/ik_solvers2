@@ -16,7 +16,7 @@ namespace ik_constraint2{
     // 内部状態更新
     virtual void update (const std::vector<cnoid::LinkPtr>& joints) = 0;
     // 達成判定
-    virtual bool isSatisfied () {return true;}
+    virtual bool isSatisfied () const {return true;}
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() {return this->drawOnObjects_;}
     // 等式制約のエラーを返す.  // getEq = getJacobian * dq となるようなdqを探索する

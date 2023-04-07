@@ -40,7 +40,7 @@ namespace ik_constraint2{
     //内部状態更新
     virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
     // 達成判定
-    virtual bool isSatisfied () override;
+    virtual bool isSatisfied () const override;
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
