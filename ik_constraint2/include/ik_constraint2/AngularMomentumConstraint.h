@@ -14,8 +14,8 @@ namespace ik_constraint2{
     //  内部の処理では角運動量を重心周りのイナーシャで割って、[rad/s]の次元で扱う
     //  dt: [s]
     //  maxError: エラーの頭打ち[rad]
-    //  precision: 収束判定の閾値[rad]
     //  weight: コスト関数の重み. error * weight^2 * error.
+    //  precision: 収束判定の閾値[rad]. error * weightのノルムと比べる
     //  targetAngularMomentum: 重心周り. ワールド座標系. [kg m^2/s]
     //状態が更新される度に, 手動でcalcForwardKinematics()とcalcCenterOfMass()を呼ぶ必要が有る.
     const cnoid::BodyPtr& robot() const { return robot_;}
@@ -30,25 +30,26 @@ namespace ik_constraint2{
 
     const cnoid::Vector3& maxError() const { return maxError_;}
     cnoid::Vector3& maxError() { return maxError_;}
-    const cnoid::Vector3& precision() const { return precision_;}
-    cnoid::Vector3& precision() { return precision_;}
+    const double& precision() const { return precision_;}
+    double& precision() { return precision_;}
     const cnoid::Vector3& weight() const { return weight_;}
     cnoid::Vector3& weight() { return weight_;}
 
-    // 収束判定
-    bool checkConvergence () override;
+    //内部状態更新
+    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 達成判定
+    virtual bool isSatisfied () const override;
 
-    const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobian (const std::vector<cnoid::LinkPtr>& joints) override;
-    const Eigen::VectorXd& calc_error () override;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   protected:
     cnoid::BodyPtr robot_ = nullptr;
     cnoid::Matrix3d eval_R_ = cnoid::Matrix3d::Identity();
 
     cnoid::Vector3 targetAngularMomentum_ = cnoid::Vector3::Ones();
-    double dt_;
+    double dt_ = 1e-2;
 
     cnoid::Vector3 maxError_ = 0.1 * cnoid::Vector3::Ones();
-    cnoid::Vector3 precision_ = 1e-4 * cnoid::Vector3::Ones();
+    double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 
     cnoid::BodyPtr jacobian_robot_ = nullptr;// 前回のjacobian計算時のrobot

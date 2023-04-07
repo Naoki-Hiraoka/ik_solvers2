@@ -44,12 +44,6 @@ namespace ik_constraint2{
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
-    // コスト(エラーの二乗和)を返す. 非線形最適化で用いる
-    // TODO
-
-    // gradient(-ヤコビアン^T*エラー)を返す
-    // TODO
-
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   private:
     cnoid::LinkPtr A_link_ = nullptr;

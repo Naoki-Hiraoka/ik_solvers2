@@ -65,7 +65,7 @@ namespace ik_constraint2{
     double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 
-    Eigen::SparseMatrix<double,Eigen::RowMajor> C_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> C_{0,3};
     cnoid::VectorX dl_;
     cnoid::VectorX du_;
     cnoid::VectorX maxCError_;
