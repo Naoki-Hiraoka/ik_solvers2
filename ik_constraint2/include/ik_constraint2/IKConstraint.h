@@ -11,47 +11,67 @@ namespace ik_constraint2{
   {
   public:
 
-    // 必ず, 状態更新 -> checkConvergence -> (getDrawOnObjects) -> ( (calc_error -> calc_jacobian) OR/AND (calc_jacobianineq -> calc_min/maxineq) ) -> 状態更新 の順で呼ぶので，同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
-    // 収束判定
-    virtual bool checkConvergence ();
+    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> update() -> isSatisfied / getEq / getJacobian / getMin/MaxIneq / getJacobianIneq / getDrawOnObjects の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
+
+    // 内部状態更新
+    virtual void update (const std::vector<cnoid::LinkPtr>& joints) = 0;
+    // 達成判定
+    virtual bool isSatisfied () {return true;}
     // for debug view
-    virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects();
-    // 等式制約のエラーを返す.
-    virtual const Eigen::VectorXd& calc_error ();
+    virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() {return this->drawOnObjects_;}
+    // 等式制約のエラーを返す.  // getEq = getJacobian * dq となるようなdqを探索する
+    const Eigen::VectorXd& getEq () const { return this->eq_; }
     // 等式制約のヤコビアンを返す. bodyのroot6dof+全関節が変数
-    virtual const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobian (const std::vector<cnoid::LinkPtr>& joints);
-    // 不等式制約のヤコビアンを返す. bodyのroot6dof+全関節が変数
-    virtual const Eigen::SparseMatrix<double,Eigen::RowMajor>& calc_jacobianineq (const std::vector<cnoid::LinkPtr>& joints);
+    const Eigen::SparseMatrix<double,Eigen::RowMajor>& getJacobian () const { return this->jacobian_; }
+    // 不等式制約のヤコビアンを返す. bodyのroot6dof+全関節が変数  // getMinIneq <= getJacobianIneq * dq <= getMaxIneq() となるようなdqを探索する
+    const Eigen::SparseMatrix<double,Eigen::RowMajor>& getJacobianIneq () const { return this->jacobianIneq_; }
     // 不等式制約のmin値を返す
-    virtual const Eigen::VectorXd& calc_minineq ();
+    const Eigen::VectorXd& getMinIneq () const { return this->minIneq_; }
     // 不等式制約のmax値を返す
-    virtual const Eigen::VectorXd& calc_maxineq ();
+    const Eigen::VectorXd& getMaxIneq () const { return this->maxIneq_; }
 
-    // コスト(エラーの二乗和)を返す. 非線形最適化で用いる
-    // TODO
+    const int& debugLevel() const { return debugLevel_;}
+    int& debugLevel() { return debugLevel_;}
 
-    // gradient(-ヤコビアン^T*エラー)を返す
-    // TODO
+    static inline size_t getJointDOF(const cnoid::LinkPtr& joint) {
+      if(joint->isRevoluteJoint() || joint->isPrismaticJoint()) return 1;
+      else if(joint->isFreeJoint()) return 6;
+      else return 0;
+    }
+    static inline bool isJointsSame(const std::vector<cnoid::LinkPtr>& joints1,const std::vector<cnoid::LinkPtr>& joints2) {
+      if (joints1.size() != joints2.size() ) return false;
+      for(size_t i=0;i<joints1.size();i++){
+        if (joints1[i] != joints2[i] ) return false;
+      }
+      return true;
+    }
+    static inline double clamp(const double& value, const double& limit_value) {
+      return std::min(std::max(value, -limit_value), limit_value);
+    }
+    template<typename Derived>
+    static inline typename Derived::PlainObject clamp(const Eigen::MatrixBase<Derived>& value, const Eigen::MatrixBase<Derived>& limit_value) {
+      return value.array().max(-limit_value.array()).min(limit_value.array());
+    }
+    static inline Eigen::SparseMatrix<double,Eigen::RowMajor> cross(const cnoid::Vector3 v) {
+      Eigen::SparseMatrix<double,Eigen::RowMajor> m(3,3);
+      m.insert(0,1) = -v[2]; m.insert(0,2) = v[1];
+      m.insert(1,0) = -v[2]; m.insert(1,2) = -v[0];
+      m.insert(2,0) = -v[1]; m.insert(2,1) = v[0];
+      return m;
+    }
 
-    const int& debuglevel() const { return debuglevel_;}
-    int& debuglevel() { return debuglevel_;}
-
-    static size_t getJointDOF(const cnoid::LinkPtr& joint);
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   protected:
-    bool is_joints_same(const std::vector<cnoid::LinkPtr>& joints1,const std::vector<cnoid::LinkPtr>& joints2);
 
-    int debuglevel_ = 0;
-
-    Eigen::VectorXd error_;
-    std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
-    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_;
-    Eigen::VectorXd minineq_;
-    Eigen::VectorXd maxineq_;
-    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
-    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_;
+    int debugLevel_ = 0;
     std::vector<cnoid::SgNodePtr> drawOnObjects_;
+
+    Eigen::VectorXd eq_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_;
+    Eigen::VectorXd minIneq_;
+    Eigen::VectorXd maxIneq_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianIneq_;
+
   };
 }
 

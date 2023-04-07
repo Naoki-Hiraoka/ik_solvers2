@@ -210,5 +210,4 @@ namespace prioritized_inverse_kinematics_solver2 {
 
     return loop;
   }
-
 }

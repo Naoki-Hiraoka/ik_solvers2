@@ -55,6 +55,12 @@ namespace ik_constraint2{
 
     cnoid::BodyPtr jacobianineq_robot_ = nullptr;// 前回のjacobian計算時のrobot
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_full_;
+
+    std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
+    std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
+    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
+    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
+
   };
 }
 

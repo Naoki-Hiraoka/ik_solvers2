@@ -34,17 +34,16 @@ endforeach(lib)
 
 add_library(${PROJECT_NAME}
   src/Jacobian.cpp
-  src/IKConstraint.cpp
   src/PositionConstraint.cpp
-  src/COMConstraint.cpp
-  src/COMVelocityConstraint.cpp
-  src/AngularMomentumConstraint.cpp
-  src/AngularMomentumLimitConstraint.cpp
-  src/JointAngleConstraint.cpp
-  src/JointLimitConstraint.cpp
-  src/JointVelocityConstraint.cpp
-  src/CollisionConstraint.cpp
-  src/ClientCollisionConstraint.cpp
+  #src/COMConstraint.cpp
+  #src/COMVelocityConstraint.cpp
+  #src/AngularMomentumConstraint.cpp
+  #src/AngularMomentumLimitConstraint.cpp
+  #src/JointAngleConstraint.cpp
+  #src/JointLimitConstraint.cpp
+  #src/JointVelocityConstraint.cpp
+  #src/CollisionConstraint.cpp
+  #src/ClientCollisionConstraint.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
