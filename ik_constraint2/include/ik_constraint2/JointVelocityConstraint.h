@@ -40,9 +40,6 @@ namespace ik_constraint2{
 
     cnoid::LinkPtr jacobianineq_joint_ = nullptr; //前回jacobian_を計算した時のjoint
 
-    std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
-
     std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
 
