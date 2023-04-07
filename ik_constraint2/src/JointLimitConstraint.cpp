@@ -8,14 +8,7 @@ namespace ik_constraint2{
       return;
     }
 
-    double lower = this->joint_->q_lower() - this->joint_->q();
-    double upper = this->joint_->q_upper() - this->joint_->q();
-
-    // this->minIneq_, this->maxIneq_を作る
-    if(this->minIneq_.rows() != 1) this->minIneq_ = Eigen::VectorXd(1);
-    this->minIneq_[0] = std::min(lower, this->maxError_) * this->weight_;
-    if(this->maxIneq_.rows() != 1) this->maxIneq_ = Eigen::VectorXd(1);
-    this->maxIneq_[0] = std::max(upper, -this->maxError_) * this->weight_;
+    this->calcMinMaxIneq(this->maxIneq_, this->minIneq_);
 
     // this->jacobianIneq_を作る
     if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_) ||
@@ -78,6 +71,16 @@ namespace ik_constraint2{
     return cost2 < std::pow(this->precision_,2);
   }
 
+  void JointLimitConstraint::calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq){
+    double lower = this->joint_->q_lower() - this->joint_->q();
+    double upper = this->joint_->q_upper() - this->joint_->q();
 
+    // this->minIneq_, this->maxIneq_を作る
+    if(minIneq.rows() != 1) minIneq = Eigen::VectorXd(1);
+    minIneq[0] = std::min(lower, this->maxError_) * this->weight_;
+    if(maxIneq.rows() != 1) maxIneq = Eigen::VectorXd(1);
+    maxIneq[0] = std::max(upper, -this->maxError_) * this->weight_;
+    return;
+  }
 
 }

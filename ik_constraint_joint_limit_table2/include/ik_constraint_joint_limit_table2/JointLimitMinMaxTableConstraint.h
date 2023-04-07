@@ -12,9 +12,8 @@ namespace ik_constraint_joint_limit_table2{
     const std::vector<std::shared_ptr<joint_limit_table::JointLimitTable> >& jointLimitTables() const { return jointLimitTables_;}
     std::vector<std::shared_ptr<joint_limit_table::JointLimitTable> >& jointLimitTables() { return jointLimitTables_;}
 
-    virtual bool checkConvergence () override;
-
   protected:
+    virtual void calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq) override;
     std::vector<std::shared_ptr<joint_limit_table::JointLimitTable> > jointLimitTables_;
   };
 }

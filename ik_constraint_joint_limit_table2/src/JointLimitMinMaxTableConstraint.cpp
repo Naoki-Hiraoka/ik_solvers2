@@ -2,12 +2,12 @@
 #include <iostream>
 
 namespace ik_constraint_joint_limit_table2{
-  bool JointLimitMinMaxTableConstraint::checkConvergence () {
-    if(this->minineq_.rows() != 1) this->minineq_ = Eigen::VectorXd::Zero(1);
-      if(this->maxineq_.rows() != 1) this->maxineq_ = Eigen::VectorXd::Zero(1);
+  void JointLimitMinMaxTableConstraint::calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq){
+    if(minIneq.rows() != 1) minIneq = Eigen::VectorXd::Zero(1);
+    if(maxIneq.rows() != 1) maxIneq = Eigen::VectorXd::Zero(1);
 
     if(!this->joint_ || !(this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint())) {
-      return true;
+      return;
     }
 
     double lower = this->joint_->q_lower();
@@ -21,17 +21,10 @@ namespace ik_constraint_joint_limit_table2{
     lower -= this->joint_->q();
     upper -= this->joint_->q();
 
-    this->minineq_[0] = std::min(this->weight_ * lower, this->maxError_);
-    this->maxineq_[0] = std::max(this->weight_ * upper, -this->maxError_);
+    minIneq[0] = std::min(this->weight_ * lower, this->maxError_);
+    maxIneq[0] = std::max(this->weight_ * upper, -this->maxError_);
 
-    if(this->debuglevel_>=1){
-      std::cerr << "JointLimitMinMaxTableConstraint " << this->joint_->name() << std::endl;
-      std::cerr << "q: " << this->joint_->q() << std::endl;
-      std::cerr << "upper: " << upper << std::endl;
-      std::cerr << "lower: " << lower << std::endl;
-      std::cerr << "tables: " << this->jointLimitTables_.size()<<std::endl;
-    }
-
-    return lower<this->precision_ && upper>-this->precision_;
+    return;
   }
+
 }

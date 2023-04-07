@@ -28,6 +28,8 @@ namespace ik_constraint2{
     virtual bool isSatisfied () const override;
 
   protected:
+    virtual void calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq);
+
     cnoid::LinkPtr joint_ = nullptr;
     double precision_ = 1e-3;
     double maxError_ = 1e-2;
