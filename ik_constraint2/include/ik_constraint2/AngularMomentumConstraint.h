@@ -48,7 +48,7 @@ namespace ik_constraint2{
     cnoid::Vector3 targetAngularMomentum_ = cnoid::Vector3::Ones();
     double dt_ = 1e-2;
 
-    cnoid::Vector3 maxError_ = 0.1 * cnoid::Vector3::Ones();
+    cnoid::Vector3 maxError_ = 0.05 * cnoid::Vector3::Ones();
     double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 

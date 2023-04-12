@@ -25,7 +25,8 @@ namespace prioritized_inverse_kinematics_solver2 {
     return converged;
   }
 
-  inline void solveIKOnce (const std::vector<cnoid::LinkPtr>& variables,
+  // 返り値は、convergeしたかどうか
+  inline bool solveIKOnce (const std::vector<cnoid::LinkPtr>& variables,
                            const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
                            std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
                            const IKParam& param,
@@ -109,12 +110,12 @@ namespace prioritized_inverse_kinematics_solver2 {
     cnoid::VectorX result;
     if(!prioritized_qp_base::solve(prevTasks, result, param.debugLevel)){
       std::cerr <<"[PrioritizedIK] prioritized_qp_base::solve failed" << std::endl;
-      return;
+      return true;
     }
 
     if (!result.allFinite()) {
       std::cerr <<"[PrioritizedIK] ERROR nan/inf is found" << std::endl;
-      return;
+      return true;
     }
 
     size_t idx = 0;
@@ -122,8 +123,9 @@ namespace prioritized_inverse_kinematics_solver2 {
       if(variables[i]->isRevoluteJoint() || variables[i]->isPrismaticJoint()){
         // update joint angles
         variables[i]->q() += result[idx];
-        if(variables[i]->q() > variables[i]->q_upper()) variables[i]->q() = variables[i]->q_upper();
-        if(variables[i]->q() < variables[i]->q_lower()) variables[i]->q() = variables[i]->q_lower();
+         // 関節角度上下限チェックはしない. JointLimitConstraintを使うこと. JointLimitConstraint無しで関節角度上下限チェックだけすると、逆運動学の結果が不正確になってしまう
+        //if(variables[i]->q() > variables[i]->q_upper()) variables[i]->q() = variables[i]->q_upper();
+        //if(variables[i]->q() < variables[i]->q_lower()) variables[i]->q() = variables[i]->q_lower();
       }else if(variables[i]->isFreeJoint()) {
         // update rootlink pos rot
         variables[i]->p() += result.segment<3>(idx);
@@ -146,6 +148,7 @@ namespace prioritized_inverse_kinematics_solver2 {
       std::cerr << "[PrioritizedIK] solveIKOnce time: " << time << "[s]" << std::endl;
     }
 
+    return result.norm() < param.convergeThre;
   }
 
   class InitialJointState {
@@ -174,8 +177,7 @@ namespace prioritized_inverse_kinematics_solver2 {
       else initialJointStateMap[variables[i]] = InitialJointState();
     }
 
-    size_t loop = 0;
-    while (loop < param.maxIteration) {
+    for(int loop=0; loop < param.maxIteration; loop++) {
       if(param.calcVelocity){
         for(size_t i=0;i<variables.size();i++){
           if(variables[i]->isFreeJoint()) {
@@ -197,8 +199,8 @@ namespace prioritized_inverse_kinematics_solver2 {
 
       updateConstraints(variables, ikc_list);
       if (checkConstraintsSatisfied(ikc_list)) return true;
-      solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
-      ++loop;
+      bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
+      if(converged) break;
     }
 
     if(param.calcVelocity){

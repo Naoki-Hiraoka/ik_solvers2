@@ -108,6 +108,7 @@ int main(void){
   prioritized_inverse_kinematics_solver2::IKParam param;
   param.debugLevel = 1;
   param.maxIteration = 40;
+  param.we = 1e2;
   bool solved = prioritized_inverse_kinematics_solver2::solveIKLoop(variables,
                                                                     constraints,
                                                                     tasks,

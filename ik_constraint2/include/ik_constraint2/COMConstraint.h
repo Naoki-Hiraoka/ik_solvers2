@@ -61,7 +61,7 @@ namespace ik_constraint2{
     cnoid::Vector3 B_localp_ = cnoid::Vector3::Zero();
     cnoid::Matrix3d eval_R_ = cnoid::Matrix3d::Identity();
 
-    cnoid::Vector3 maxError_ = 0.1 * cnoid::Vector3::Ones();
+    cnoid::Vector3 maxError_ = 0.05 * cnoid::Vector3::Ones();
     double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 

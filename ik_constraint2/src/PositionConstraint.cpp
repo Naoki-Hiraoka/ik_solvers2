@@ -2,10 +2,6 @@
 #include <ik_constraint2/Jacobian.h>
 
 namespace ik_constraint2{
-  PositionConstraint::PositionConstraint () {
-    this->maxError_ << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
-  }
-
   // 収束判定
   void PositionConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
     const cnoid::Position& A_pos = (this->A_link_) ? this->A_link_->T() * this->A_localpos_ : this->A_localpos_;

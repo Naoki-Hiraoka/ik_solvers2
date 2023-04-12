@@ -10,8 +10,6 @@ namespace ik_constraint2{
   class PositionConstraint : public IKConstraint
   {
   public:
-    PositionConstraint();
-
     //A_link中のA_localposの部位とB_link中のB_localposの部位を一致させる.
     //リンクがnullptrならworld座標系を意味する
     //  maxError: エラーの頭打ち eval系
@@ -50,7 +48,7 @@ namespace ik_constraint2{
     cnoid::Position A_localpos_ = cnoid::Position::Identity();
     cnoid::LinkPtr B_link_ = nullptr;
     cnoid::Position B_localpos_ = cnoid::Position::Identity();
-    cnoid::Vector6 maxError_;
+    cnoid::Vector6 maxError_ = (cnoid::Vector6()<<0.05,0.05,0.05,0.05,0.05,0.05).finished();
     double precision_ = 1e-4;
     cnoid::Vector6 weight_ = cnoid::Vector6::Ones();
     cnoid::LinkPtr eval_link_ = nullptr;

@@ -45,7 +45,7 @@ namespace ik_constraint2{
     cnoid::LinkPtr A_link_ = nullptr;
     cnoid::LinkPtr B_link_ = nullptr;
     double tolerance_ = 0.01;
-    double maxError_ = 0.1;
+    double maxError_ = 0.05;
     double precision_ = 1e-4;
     double weight_ = 1.0;
     double velocityDamper_ = 1.0;
