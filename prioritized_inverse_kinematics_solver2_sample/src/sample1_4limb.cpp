@@ -127,7 +127,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
                                                                         tasks,
                                                                         param);
 
-      if(i % 50 == 0){
+      if(i % 10 == 0){
         std::cerr << "loop: " << i << std::endl;
         std::vector<cnoid::SgNodePtr> markers;
         for(int j=0;j<constraints.size();j++){
@@ -139,7 +139,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
         viewer.drawOn(markers);
         viewer.drawObjects();
 
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
 
       if(solved) break;

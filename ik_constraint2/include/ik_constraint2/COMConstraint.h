@@ -53,6 +53,8 @@ namespace ik_constraint2{
     // 収束判定
     void update (const std::vector<cnoid::LinkPtr>& joints) override;
     bool isSatisfied() const override;
+    // for debug view
+    virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
   protected:
     cnoid::BodyPtr A_robot_ = nullptr;
@@ -70,6 +72,8 @@ namespace ik_constraint2{
     cnoid::VectorX du_;
     cnoid::VectorX maxCError_;
     double CPrecision_ = 1e-4;
+
+    cnoid::SgLineSetPtr lines_;
 
     cnoid::BodyPtr jacobian_A_robot_ = nullptr;// 前回のjacobian計算時のrobot
     cnoid::BodyPtr jacobian_B_robot_ = nullptr;// 前回のjacobian計算時のrobot
