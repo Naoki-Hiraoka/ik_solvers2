@@ -36,7 +36,7 @@ foreach(lib ${CHOREONOID_BODY_LIBRARIES})
 endforeach(lib)
 
 add_library(${PROJECT_NAME}
-  src/PrioritizedInverseKinematicsSolver.cpp
+  src/prioritized_inverse_kinematics_solver2.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -58,17 +58,3 @@ install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
 )
-
-#############
-## Testing ##
-#############
-
-add_subdirectory(sample)
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_prioritized_inverse_kinematics_solver2.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)

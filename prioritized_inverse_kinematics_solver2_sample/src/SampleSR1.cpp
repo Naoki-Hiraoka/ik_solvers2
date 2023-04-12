@@ -1,4 +1,4 @@
-#include <prioritized_inverse_kinematics_solver2/PrioritizedInverseKinematicsSolver.h>
+#include <prioritized_inverse_kinematics_solver2/prioritized_inverse_kinematics_solver2.h>
 #include <prioritized_qp_osqp/prioritized_qp_osqp.h>
 #include <ik_constraint2/PositionConstraint.h>
 #include <ik_constraint2/COMConstraint.h>
@@ -14,6 +14,10 @@ int main(void){
   cnoid::BodyPtr robot = bodyLoader.load(modelfile);
 
   // reset manip pose
+  robot->rootLink()->p() = cnoid::Vector3(0,0,0.6);
+  robot->rootLink()->v().setZero();
+  robot->rootLink()->R() = cnoid::Matrix3::Identity();
+  robot->rootLink()->w().setZero();
   std::vector<double> reset_manip_pose{
     0.0, -0.349066, 0.0, 0.820305, -0.471239, 0.0,// rleg
       0.523599, 0.0, 0.0, -1.74533, 0.15708, -0.113446, 0.637045,// rarm
@@ -52,7 +56,7 @@ int main(void){
     // task: COM to target
     std::shared_ptr<ik_constraint2::COMConstraint> constraint = std::make_shared<ik_constraint2::COMConstraint>();
     constraint->A_robot() = robot;
-    constraint->B_localp() = cnoid::Vector3(0.0,0.0,0.7);
+    constraint->B_localp() = cnoid::Vector3(0.0,0.0,0.6);
     constraints1.push_back(constraint);
   }
 

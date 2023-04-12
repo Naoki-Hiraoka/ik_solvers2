@@ -1,0 +1,3 @@
+- git:
+    local-name: choreonoid_viewer
+    uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer.git
