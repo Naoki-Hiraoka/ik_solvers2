@@ -8,9 +8,10 @@
 #include <prioritized_inverse_kinematics_solver2/prioritized_inverse_kinematics_solver2.h>
 #include <prioritized_qp_osqp/prioritized_qp_osqp.h>
 #include <ik_constraint2/ik_constraint2.h>
+#include <ik_constraint_vclip/ik_constraint_vclip.h>
 
 namespace prioritized_inverse_kinematics_solver2_sample{
-  void sample1_4limb(){
+  void sample2_collision(){
     // load robot
     std::string modelfile = ros::package::getPath("choreonoid") + "/share/model/SR1/SR1.body";
     cnoid::BodyLoader bodyLoader;
@@ -36,10 +37,41 @@ namespace prioritized_inverse_kinematics_solver2_sample{
 
     // setup tasks
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints0;
+    // joint limit
     for(int i=0;i<robot->numJoints();i++){
       std::shared_ptr<ik_constraint2::JointLimitConstraint> constraint = std::make_shared<ik_constraint2::JointLimitConstraint>();
       constraint->joint() = robot->joint(i);
       constraints0.push_back(constraint);
+    }
+    {
+      // task: self collision
+      std::vector<std::vector<std::string> > pairs{
+        std::vector<std::string>{"LARM_SHOULDER_R","WAIST"},
+        std::vector<std::string>{"LARM_ELBOW","WAIST"},
+        std::vector<std::string>{"LARM_WRIST_R","WAIST"},
+        std::vector<std::string>{"RARM_SHOULDER_R","WAIST"},
+        std::vector<std::string>{"RARM_ELBOW","WAIST"},
+        std::vector<std::string>{"RARM_WRIST_R","WAIST"},
+        std::vector<std::string>{"LARM_SHOULDER_R","WAIST_R"},
+        std::vector<std::string>{"LARM_ELBOW","WAIST_R"},
+        std::vector<std::string>{"LARM_WRIST_R","WAIST_R"},
+        std::vector<std::string>{"RARM_SHOULDER_R","WAIST_R"},
+        std::vector<std::string>{"RARM_ELBOW","WAIST_R"},
+        std::vector<std::string>{"RARM_WRIST_R","WAIST_R"},
+        std::vector<std::string>{"LARM_SHOULDER_R","CHEST"},
+        std::vector<std::string>{"LARM_ELBOW","CHEST"},
+        std::vector<std::string>{"LARM_WRIST_R","CHEST"},
+        std::vector<std::string>{"RARM_SHOULDER_R","CHEST"},
+        std::vector<std::string>{"RARM_ELBOW","CHEST"},
+        std::vector<std::string>{"RARM_WRIST_R","CHEST"}
+      };
+      for(int i=0;i<pairs.size();i++){
+        std::shared_ptr<ik_constraint_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint_vclip::VclipCollisionConstraint>();
+        constraint->A_link() = robot->link(pairs[i][0]);
+        constraint->B_link() = robot->link(pairs[i][1]);
+        constraint->tolerance() = 0.03;
+        constraints0.push_back(constraint);
+      }
     }
 
     std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > constraints1;

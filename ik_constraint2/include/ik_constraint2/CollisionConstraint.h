@@ -36,6 +36,8 @@ namespace ik_constraint2{
     virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
     // 達成判定
     virtual bool isSatisfied () const override;
+    // for debug view
+    virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
   protected:
     //A_v, B_vはlocal系
@@ -49,6 +51,8 @@ namespace ik_constraint2{
     double precision_ = 1e-4;
     double weight_ = 1.0;
     double velocityDamper_ = 1.0;
+
+    cnoid::SgLineSetPtr lines_;
 
     cnoid::Vector3 A_currentLocalp_ = cnoid::Vector3::Zero();
     cnoid::Vector3 B_currentLocalp_ = cnoid::Vector3::Zero();

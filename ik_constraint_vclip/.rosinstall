@@ -1,8 +1,7 @@
 - git:
-    local-name: choreonoid_viewer
-    uri: https://github.com/Naoki-Hiraoka/choreonoid_viewer.git
-
-# for collision check
+    local-name: choreonoid
+    uri: https://github.com/choreonoid/choreonoid.git
+    version: release-1.7
 - git:
     local-name: collision_check_libraries
     uri: https://github.com/Naoki-Hiraoka/collision_check_libraries.git

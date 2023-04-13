@@ -72,6 +72,10 @@ namespace ik_constraint2{
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
       std::cerr << "direction" << std::endl;
       std::cerr << dir.transpose() << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
       std::cerr << "jacobianineq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
     }
@@ -80,7 +84,30 @@ namespace ik_constraint2{
   }
 
   bool CollisionConstraint::isSatisfied() const{
-    return this->currentDistance_-this->tolerance_ < this->precision_;
+    return this->currentDistance_-this->tolerance_ > -this->precision_;
+  }
+
+  std::vector<cnoid::SgNodePtr>& CollisionConstraint::getDrawOnObjects(){
+    if(!this->lines_){
+      this->lines_ = new cnoid::SgLineSet;
+      this->lines_->setLineWidth(1.0);
+      this->lines_->getOrCreateColors()->resize(1);
+      this->lines_->getOrCreateColors()->at(0) = cnoid::Vector3f(0.5,0.0,0.0);
+      // A, B
+      this->lines_->getOrCreateVertices()->resize(2);
+      this->lines_->colorIndices().resize(0);
+      this->lines_->addLine(0,1); this->lines_->colorIndices().push_back(0); this->lines_->colorIndices().push_back(0);
+
+      this->drawOnObjects_ = std::vector<cnoid::SgNodePtr>{this->lines_};
+    }
+
+    const cnoid::Vector3& A_pos = (this->A_link_) ? this->A_link_->T() * this->A_currentLocalp_ : this->A_currentLocalp_;
+    const cnoid::Vector3& B_pos = (this->B_link_) ? this->B_link_->T() * this->B_currentLocalp_ : this->B_currentLocalp_;
+
+    this->lines_->getOrCreateVertices()->at(0) = A_pos.cast<cnoid::Vector3f::Scalar>();
+    this->lines_->getOrCreateVertices()->at(1) = B_pos.cast<cnoid::Vector3f::Scalar>();
+
+    return this->drawOnObjects_;
   }
 
 }

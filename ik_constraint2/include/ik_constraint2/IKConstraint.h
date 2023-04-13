@@ -1,5 +1,5 @@
-#ifndef IK_CONSTRAINT2_H
-#define IK_CONSTRAINT2_H
+#ifndef IK_CONSTRAINT2_IKCONSTRAINT_H
+#define IK_CONSTRAINT2_IKCONSTRAINT_H
 
 #include <cnoid/Body>
 #include <cnoid/SceneDrawables>

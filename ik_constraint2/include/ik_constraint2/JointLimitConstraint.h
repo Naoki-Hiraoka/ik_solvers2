@@ -32,7 +32,7 @@ namespace ik_constraint2{
 
     cnoid::LinkPtr joint_ = nullptr;
     double precision_ = 1e-3;
-    double maxError_ = 1e-2;
+    double maxError_ = 0.05;
     double weight_ = 1.0;
 
     cnoid::LinkPtr jacobianineq_joint_ = nullptr; //前回jacobian_を計算した時のjoint

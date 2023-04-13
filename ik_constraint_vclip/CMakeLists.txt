@@ -1,19 +1,22 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ik_constraint2)
+project(ik_constraint_vclip)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  ik_constraint2
+  choreonoid_vclip
+  choreonoid_qhull)
 
 find_package(choreonoid REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ik_constraint2
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS CHOREONOID
-)
+  LIBRARIES ik_constraint_vclip
+  CATKIN_DEPENDS choreonoid_vclip choreonoid_qhull ik_constraint2
+  #  DEPENDS system_lib
+  )
 
 ###########
 ## Build ##
@@ -33,15 +36,7 @@ foreach(lib ${CHOREONOID_BODY_LIBRARIES})
 endforeach(lib)
 
 add_library(${PROJECT_NAME}
-  src/Jacobian.cpp
-  src/PositionConstraint.cpp
-  src/COMConstraint.cpp
-  src/AngularMomentumConstraint.cpp
-  src/JointAngleConstraint.cpp
-  src/JointLimitConstraint.cpp
-  src/JointVelocityConstraint.cpp
-  src/CollisionConstraint.cpp
-  src/ClientCollisionConstraint.cpp
+  src/VclipCollisionConstraint.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -69,7 +64,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ik_constraint2.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ik_constraint_joint_limit_table.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

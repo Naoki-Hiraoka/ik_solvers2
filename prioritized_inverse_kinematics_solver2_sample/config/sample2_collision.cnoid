@@ -1,0 +1,11 @@
+items: 
+  id: 0
+  name: "Root"
+  plugin: Base
+  class: RootItem
+  children: 
+    - 
+      id: 1
+      name: "PrioritizedInverseKinematicsSolver2SamplePlugin"
+      plugin: PrioritizedInverseKinematicsSolver2Sample
+      class: sample2_collisionItem

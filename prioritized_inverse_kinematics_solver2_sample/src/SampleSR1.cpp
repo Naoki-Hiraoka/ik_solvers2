@@ -120,8 +120,8 @@ int main(void){
     for(size_t j=0;j<constraints[i].size();j++){
       constraints[i][j]->debugLevel() = 0;//not debug
       constraints[i][j]->update(variables);
-      if(constraints[i][j]->isSatisfied()) std::cerr << "constraint " << i << " " << j << ": converged"<< std::endl;
-      else std::cerr << "constraint " << i << ": NOT converged"<< std::endl;
+      if(constraints[i][j]->isSatisfied()) std::cerr << "constraint " << i << " " << j << ": satisfied"<< std::endl;
+      else std::cerr << "constraint " << i << " " << j << ": NOT satisfied"<< std::endl;
     }
   }
 }
