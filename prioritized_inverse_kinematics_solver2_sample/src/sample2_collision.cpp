@@ -8,7 +8,7 @@
 #include <prioritized_inverse_kinematics_solver2/prioritized_inverse_kinematics_solver2.h>
 #include <prioritized_qp_osqp/prioritized_qp_osqp.h>
 #include <ik_constraint2/ik_constraint2.h>
-#include <ik_constraint_vclip/ik_constraint_vclip.h>
+#include <ik_constraint2_vclip/ik_constraint2_vclip.h>
 
 namespace prioritized_inverse_kinematics_solver2_sample{
   void sample2_collision(){
@@ -66,7 +66,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
         std::vector<std::string>{"RARM_WRIST_R","CHEST"}
       };
       for(int i=0;i<pairs.size();i++){
-        std::shared_ptr<ik_constraint_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint_vclip::VclipCollisionConstraint>();
+        std::shared_ptr<ik_constraint2_vclip::VclipCollisionConstraint> constraint = std::make_shared<ik_constraint2_vclip::VclipCollisionConstraint>();
         constraint->A_link() = robot->link(pairs[i][0]);
         constraint->B_link() = robot->link(pairs[i][1]);
         constraint->tolerance() = 0.03;

@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>ik_constraint2</depend>
-  <depend>ik_constraint_vclip</depend>
+  <depend>ik_constraint2_vclip</depend>
   <depend>prioritized_inverse_kinematics_solver2</depend>
   <depend>choreonoid_viewer</depend>
 

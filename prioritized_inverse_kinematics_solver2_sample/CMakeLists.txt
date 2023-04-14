@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
-  ik_constraint_vclip
+  ik_constraint2_vclip
   prioritized_inverse_kinematics_solver2
   roslib
   choreonoid_viewer
