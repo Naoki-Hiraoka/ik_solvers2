@@ -1,9 +1,9 @@
-#include <ik_constraint_vclip/VclipCollisionConstraint.h>
+#include <ik_constraint2_vclip/VclipCollisionConstraint.h>
 #include <iostream>
 #include <choreonoid_qhull/choreonoid_qhull.h>
 #include <choreonoid_vclip/choreonoid_vclip.h>
 
-namespace ik_constraint_vclip{
+namespace ik_constraint2_vclip{
   bool VclipCollisionConstraint::computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) {
     assert(A_link && B_link); // temporary
 

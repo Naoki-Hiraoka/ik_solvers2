@@ -1,5 +1,5 @@
-#ifndef IK_CONSTRAINT_VCLIP_VCLIPCOLLISIONCONSTRAINT_H
-#define IK_CONSTRAINT_VCLIP_VCLIPCOLLISIONCONSTRAINT_H
+#ifndef IK_CONSTRAINT2_VCLIP_VCLIPCOLLISIONCONSTRAINT_H
+#define IK_CONSTRAINT2_VCLIP_VCLIPCOLLISIONCONSTRAINT_H
 
 #include <ik_constraint2/CollisionConstraint.h>
 
@@ -7,7 +7,7 @@ namespace Vclip{
   class Polyhedron;
 }
 
-namespace ik_constraint_vclip{
+namespace ik_constraint2_vclip{
   class VclipCollisionConstraint : public ik_constraint2::CollisionConstraint {
   public:
   protected:

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ik_constraint_vclip)
+project(ik_constraint2_vclip)
 
 add_compile_options(-std=c++14)
 set(CMAKE_BUILD_TYPE Release)
@@ -13,7 +13,7 @@ find_package(choreonoid REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ik_constraint_vclip
+  LIBRARIES ik_constraint2_vclip
   CATKIN_DEPENDS choreonoid_vclip choreonoid_qhull ik_constraint2
   #  DEPENDS system_lib
   )

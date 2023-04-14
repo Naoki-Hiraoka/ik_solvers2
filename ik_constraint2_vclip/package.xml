@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ik_constraint_vclip</name>
+  <name>ik_constraint2_vclip</name>
   <version>0.0.0</version>
-  <description>The ik_constraint_vclip package</description>
+  <description>The ik_constraint2_vclip package</description>
 
   <maintainer email="hiraoka@jsk.imi.i.u-tokyo.ac.jp">Naoki-Hiraoka</maintainer>
 
