@@ -1,7 +1,7 @@
-#include <ik_constraint_joint_limit_table2/JointLimitMinMaxTableConstraint.h>
+#include <ik_constraint2_joint_limit_table/JointLimitMinMaxTableConstraint.h>
 #include <iostream>
 
-namespace ik_constraint_joint_limit_table2{
+namespace ik_constraint2_joint_limit_table{
   void JointLimitMinMaxTableConstraint::calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq){
     if(minIneq.rows() != 1) minIneq = Eigen::VectorXd::Zero(1);
     if(maxIneq.rows() != 1) maxIneq = Eigen::VectorXd::Zero(1);

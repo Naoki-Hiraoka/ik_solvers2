@@ -1,0 +1,6 @@
+#ifndef IK_CONSTRAINT2_JOINT_LIMIT_TABLE_H
+#define IK_CONSTRAINT2_JOINT_LIMIT_TABLE_H
+
+#include <ik_constraint2_joint_limit_table/ik_constraint2_joint_limit_table.h>
+
+#endif

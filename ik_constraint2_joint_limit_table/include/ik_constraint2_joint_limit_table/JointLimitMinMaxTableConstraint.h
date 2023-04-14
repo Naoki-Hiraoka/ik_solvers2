@@ -1,10 +1,10 @@
-#ifndef IK_CONSTRAINT2_JOINT_LIMIT_TABLE2_JOINTLIMITMINMAXTABLECONSTRAINT_H
-#define IK_CONSTRAINT2_JOINT_LIMIT_TABLE2_JOINTLIMITMINMAXTABLECONSTRAINT_H
+#ifndef IK_CONSTRAINT2_JOINT_LIMIT_TABLE_JOINTLIMITMINMAXTABLECONSTRAINT_H
+#define IK_CONSTRAINT2_JOINT_LIMIT_TABLE_JOINTLIMITMINMAXTABLECONSTRAINT_H
 
 #include <ik_constraint2/JointLimitConstraint.h>
 #include <joint_limit_table/JointLimitTable.h>
 
-namespace ik_constraint_joint_limit_table2{
+namespace ik_constraint2_joint_limit_table{
   class JointLimitMinMaxTableConstraint : public ik_constraint2::JointLimitConstraint {
   public:
     //jointのqをq_upperとq_lowerの間かつmin-max-tableの間にさせる.

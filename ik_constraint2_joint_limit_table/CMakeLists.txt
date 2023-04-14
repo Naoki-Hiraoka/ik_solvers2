@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ik_constraint_joint_limit_table2)
+project(ik_constraint2_joint_limit_table)
 
 add_compile_options(-std=c++11)
 set(CMAKE_BUILD_TYPE Release)
@@ -63,7 +63,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ik_constraint_joint_limit_table2.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ik_constraint2_joint_limit_table.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ik_constraint_joint_limit_table2</name>
+  <name>ik_constraint2_joint_limit_table</name>
   <version>0.0.0</version>
-  <description>The ik_constraint_joint_limit_table2 package</description>
+  <description>The ik_constraint2_joint_limit_table package</description>
 
   <maintainer email="hiraoka@jsk.imi.i.u-tokyo.ac.jp">Naoki-Hiraoka</maintainer>
 
