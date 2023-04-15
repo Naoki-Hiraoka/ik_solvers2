@@ -199,7 +199,11 @@ namespace prioritized_inverse_kinematics_solver2 {
       }
 
       updateConstraints(variables, ikc_list);
-      if (checkConstraintsSatisfied(ikc_list)) return true;
+      if(loop >= param.minIteration){
+        if (checkConstraintsSatisfied(ikc_list)) {
+          return true;
+        }
+      }
       bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
       if(converged) break;
     }

@@ -16,7 +16,8 @@ namespace prioritized_inverse_kinematics_solver2 {
    */
   class IKParam {
   public:
-    size_t maxIteration = 1;
+    size_t maxIteration = 1; // constraintをsatisfiedするか、maxIteraionに達すると終了する.
+    size_t minIteration = 0; // このiterationまでは、constraintをsatisfiedしても終了しない
     std::vector<double> dqWeight; // dqWeight.size() == dimの場合、探索変数の各要素について、wn+weをdqWeight倍する.
     double wn = 1e-6;
     std::vector<double> wnVec; // wnVec.size() == ikc_list.size()の場合、wnの代わりにこっちを使う
@@ -25,8 +26,8 @@ namespace prioritized_inverse_kinematics_solver2 {
     int debugLevel = 0;
     double dt = 0.1;
     bool calcVelocity = true; // dtを用いて速度の計算をするかどうか. 速度を利用するconstraintがあるなら必須. ないなら、falseにすると高速化が見込まれる
-    bool checkFinalState = true; // maxIteration番目のloop後に、各constraintを満たしているかどうかの判定を行うかどうか. 行わない場合、falseが返る.
-    double convergeThre = 5e-3; // 各イテレーションでの変位のノルムがconvergeThre未満の場合に、maxIterationに行っていなくても終了する
+    bool checkFinalState = true; // maxIteration番目またはconvergedのloop後に、各constraintを満たしているかどうかの判定を行うかどうか. 行わない場合、falseが返る.
+    double convergeThre = 5e-3; // 各イテレーションでの変位のノルムがconvergeThre未満の場合に、maxIterationに行っていなくても, minIteraionに行っていなくても、終了する
   };
   bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
