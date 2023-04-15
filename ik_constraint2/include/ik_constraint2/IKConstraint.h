@@ -11,7 +11,7 @@ namespace ik_constraint2{
   {
   public:
 
-    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> updateBounds() -> (isSatisfied / getEq / getMin/MaxIneq / distance) -> updateJacobian() -> getJacobian / getJacobianIneq / getDrawOnObjects の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
+    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> updateBounds() -> (isSatisfied / getEq / getMin/MaxIneq / distance / getDrawOnObjects) -> updateJacobian() -> getJacobian / getJacobianIneq の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () = 0;
