@@ -35,10 +35,14 @@ namespace ik_constraint2{
     const cnoid::Matrix3d& eval_localR() const { return eval_localR_;}
     cnoid::Matrix3d& eval_localR() { return eval_localR_;}
 
-    //内部状態更新
-    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () override;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) override;
     // 達成判定
     virtual bool isSatisfied () const override;
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const override;
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
@@ -55,6 +59,7 @@ namespace ik_constraint2{
     cnoid::Matrix3d eval_localR_ = cnoid::Matrix3d::Identity();
 
     cnoid::SgLineSetPtr lines_;
+    cnoid::Vector6 current_error_eval_ = cnoid::Vector6::Zero();
 
     std::vector<cnoid::LinkPtr> path_A_joints_;
     std::vector<cnoid::LinkPtr> path_B_joints_;

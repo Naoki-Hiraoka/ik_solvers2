@@ -24,6 +24,10 @@ namespace ik_constraint2_joint_limit_table{
     minIneq[0] = std::min(this->weight_ * lower, this->maxError_);
     maxIneq[0] = std::max(this->weight_ * upper, -this->maxError_);
 
+    // distance計算用
+    this->current_lower_ = lower;
+    this->current_upper_ = upper;
+
     return;
   }
 

@@ -5,12 +5,7 @@
 #include <cnoid/EigenUtil>
 
 namespace ik_constraint2{
-
-  CollisionConstraint::CollisionConstraint()
-  {
-  }
-
-  void CollisionConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void CollisionConstraint::updateBounds () {
     // minIneq/maxIneqの計算
     if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
     if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
@@ -24,6 +19,19 @@ namespace ik_constraint2{
       this->maxIneq_[0] = 1e10;
     }
 
+    if(this->debugLevel_>=1){
+      std::cerr << "CollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
+      std::cerr << "distance: " << this->currentDistance_ << std::endl;
+      std::cerr << "direction" << std::endl;
+      std::cerr << this->currentDirection_.transpose() << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+    }
+  }
+
+  void CollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
     // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
     if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_)
@@ -69,13 +77,6 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=1){
       std::cerr << "CollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
-      std::cerr << "distance: " << this->currentDistance_ << std::endl;
-      std::cerr << "direction" << std::endl;
-      std::cerr << dir.transpose() << std::endl;
-      std::cerr << "minIneq" << std::endl;
-      std::cerr << this->minIneq_.transpose() << std::endl;
-      std::cerr << "maxIneq" << std::endl;
-      std::cerr << this->maxIneq_.transpose() << std::endl;
       std::cerr << "jacobianineq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
     }
@@ -85,6 +86,10 @@ namespace ik_constraint2{
 
   bool CollisionConstraint::isSatisfied() const{
     return this->currentDistance_-this->tolerance_ > -this->precision_;
+  }
+
+  double CollisionConstraint::distance() const{
+    return std::abs(std::max(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
   }
 
   std::vector<cnoid::SgNodePtr>& CollisionConstraint::getDrawOnObjects(){

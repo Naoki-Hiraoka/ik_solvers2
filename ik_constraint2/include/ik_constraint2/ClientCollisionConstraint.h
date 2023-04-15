@@ -7,7 +7,6 @@ namespace ik_constraint2{
   class ClientCollisionConstraint : public CollisionConstraint
   {
   public:
-    ClientCollisionConstraint();
 
     // A_linkとB_linkの干渉を回避する
     //  最近傍点と、方向ベクトルはgiven. 距離のみ計算

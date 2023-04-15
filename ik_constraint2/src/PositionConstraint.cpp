@@ -2,10 +2,11 @@
 #include <ik_constraint2/Jacobian.h>
 
 namespace ik_constraint2{
-  // 収束判定
-  void PositionConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void PositionConstraint::updateBounds () {
     const cnoid::Position& A_pos = (this->A_link_) ? this->A_link_->T() * this->A_localpos_ : this->A_localpos_;
     const cnoid::Position& B_pos = (this->B_link_) ? this->B_link_->T() * this->B_localpos_ : this->B_localpos_;
+
+    cnoid::Matrix3d eval_R = (this->eval_link_) ? this->eval_link_->R() * this->eval_localR_ : this->eval_localR_;
 
     cnoid::Vector6 error; // world frame. A-B
     const cnoid::Vector3 pos_error = A_pos.translation() - B_pos.translation();
@@ -17,7 +18,7 @@ namespace ik_constraint2{
       if(this->weight_[3] == 0.0) axis = cnoid::Vector3::UnitX();
       else if(this->weight_[4] == 0.0) axis = cnoid::Vector3::UnitY();
       else if(this->weight_[5] == 0.0) axis = cnoid::Vector3::UnitZ();
-      cnoid::Matrix3d eval_R = (this->eval_link_) ? this->eval_link_->R() * this->eval_localR_ : this->eval_localR_;
+
       // A_axisとB_axisを一致させる
       cnoid::Vector3 A_axis; // world frame
       cnoid::Vector3 B_axis; // world frame
@@ -49,7 +50,6 @@ namespace ik_constraint2{
     }
     error << pos_error , rot_error;
 
-    cnoid::Matrix3d eval_R = (this->eval_link_) ? this->eval_link_->R() * this->eval_localR_ : this->eval_localR_;
     cnoid::Vector6 error_eval; // eval frame. A-B
     error_eval.head<3>() = eval_R.transpose() * error.head<3>();
     error_eval.tail<3>() = eval_R.transpose() * error.tail<3>();
@@ -63,6 +63,27 @@ namespace ik_constraint2{
         idx++;
       }
     }
+
+    // distanceを計算する
+    this->current_error_eval_ = error_eval;
+
+    if(this->debugLevel_>=1){
+      std::cerr << "PositionConstraint" << std::endl;
+      std::cerr << "A_pos" << std::endl;
+      std::cerr << A_pos.translation().transpose() << std::endl;
+      std::cerr << A_pos.linear() << std::endl;
+      std::cerr << "B_pos" << std::endl;
+      std::cerr << B_pos.translation().transpose() << std::endl;
+      std::cerr << B_pos.linear() << std::endl;
+      std::cerr << "error_eval" << std::endl;
+      std::cerr << error_eval.transpose() << std::endl;
+      std::cerr << "eq" << std::endl;
+      std::cerr << this->eq_.transpose() << std::endl;
+    }
+
+  }
+
+  void PositionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
 
     // this->jacobian_を計算する
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -98,6 +119,7 @@ namespace ik_constraint2{
                              this->jacobian_full_
                              );
 
+    cnoid::Matrix3d eval_R = (this->eval_link_) ? this->eval_link_->R() * this->eval_localR_ : this->eval_localR_;
     Eigen::SparseMatrix<double,Eigen::RowMajor> eval_R_sparse(3,3);
     for(int i=0;i<3;i++) for(int j=0;j<3;j++) eval_R_sparse.insert(i,j) = eval_R(i,j);
     this->jacobian_full_local_.resize(this->jacobian_full_.rows(), this->jacobian_full_.cols());
@@ -117,16 +139,6 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=1){
       std::cerr << "PositionConstraint" << std::endl;
-      std::cerr << "A_pos" << std::endl;
-      std::cerr << A_pos.translation().transpose() << std::endl;
-      std::cerr << A_pos.linear() << std::endl;
-      std::cerr << "B_pos" << std::endl;
-      std::cerr << B_pos.translation().transpose() << std::endl;
-      std::cerr << B_pos.linear() << std::endl;
-      std::cerr << "error_eval" << std::endl;
-      std::cerr << error_eval.transpose() << std::endl;
-      std::cerr << "eq" << std::endl;
-      std::cerr << this->eq_.transpose() << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
     }
@@ -137,6 +149,11 @@ namespace ik_constraint2{
   bool PositionConstraint::isSatisfied () const {
     return this->eq_.norm() < this->precision_;
   }
+
+  double PositionConstraint::distance () const {
+    return this->current_error_eval_.cwiseProduct(this->weight_).norm();
+  }
+
 
   std::vector<cnoid::SgNodePtr>& PositionConstraint::getDrawOnObjects(){
     if(!this->lines_){

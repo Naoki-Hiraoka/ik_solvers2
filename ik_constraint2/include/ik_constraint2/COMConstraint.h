@@ -50,9 +50,14 @@ namespace ik_constraint2{
     const double& CPrecision() const { return CPrecision_;}
     double& CPrecision() { return CPrecision_;}
 
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () override;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) override;
     // 収束判定
-    void update (const std::vector<cnoid::LinkPtr>& joints) override;
-    bool isSatisfied() const override;
+    virtual bool isSatisfied() const override;
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const override;
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 
@@ -74,20 +79,17 @@ namespace ik_constraint2{
     double CPrecision_ = 1e-4;
 
     cnoid::SgLineSetPtr lines_;
+    cnoid::Vector3 current_error_eval_ = cnoid::Vector3::Zero();
+    cnoid::VectorX current_u_;
+    cnoid::VectorX current_l_;
 
     cnoid::BodyPtr jacobian_A_robot_ = nullptr;// 前回のjacobian計算時のrobot
     cnoid::BodyPtr jacobian_B_robot_ = nullptr;// 前回のjacobian計算時のrobot
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_full_;
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_full_local_;
-    cnoid::BodyPtr jacobianineq_A_robot_ = nullptr;// 前回のjacobian計算時のrobot
-    cnoid::BodyPtr jacobianineq_B_robot_ = nullptr;// 前回のjacobian計算時のrobot
-    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_full_;
-    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_full_local_;
 
     std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;
-    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
 
   };
 }

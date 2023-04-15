@@ -2,17 +2,38 @@
 #include <iostream>
 
 namespace ik_constraint2{
-  void JointAngleConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void JointAngleConstraint::updateBounds () {
     if(!this->joint_) {
       std::cerr << "[JointAngleConstraint::update] !this->joint_" << std::endl;
       return;
     }
 
-    double error = std::min(std::max(this->joint_->q() - targetq_,-this->maxError_), this->maxError_); // target - joint
+    double error = this->targetq_ - this->joint_->q(); // target - joint
 
     // this->eqの計算 target - joint
     if(this->eq_.rows() != 1) this->eq_ = Eigen::VectorXd(1);
-    this->eq_[0] = this->weight_ * -error;
+    this->eq_[0] = this->weight_ * std::min(std::max(error,-this->maxError_), this->maxError_);
+
+    // distance計算用
+    this->current_error_ = error;
+
+    if(this->debugLevel_>=1){
+      std::cerr << "JointAngleConstraint" << std::endl;
+      std::cerr << "q" << std::endl;
+      std::cerr << this->joint_->q() << std::endl;
+      std::cerr << "targetq" << std::endl;
+      std::cerr << this->targetq_ << std::endl;
+      std::cerr << "eq" << std::endl;
+      std::cerr << this->eq_.transpose() << std::endl;
+    }
+
+  }
+
+  void JointAngleConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    if(!this->joint_) {
+      std::cerr << "[JointAngleConstraint::update] !this->joint_" << std::endl;
+      return;
+    }
 
     // this->jacobian_の計算
     if(!IKConstraint::isJointsSame(joints,this->jacobian_joints_) ||
@@ -47,12 +68,6 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=1){
       std::cerr << "JointAngleConstraint" << std::endl;
-      std::cerr << "q" << std::endl;
-      std::cerr << this->joint_->q() << std::endl;
-      std::cerr << "targetq" << std::endl;
-      std::cerr << this->targetq_ << std::endl;
-      std::cerr << "eq" << std::endl;
-      std::cerr << this->eq_.transpose() << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
     }
@@ -63,5 +78,10 @@ namespace ik_constraint2{
   bool JointAngleConstraint::isSatisfied() const{
     return this->eq_.norm() < this->precision_;
   }
+
+  double JointAngleConstraint::distance() const{
+    return std::abs(this->current_error_ * this->weight_);
+  }
+
 
 }

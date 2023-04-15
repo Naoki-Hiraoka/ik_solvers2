@@ -35,10 +35,14 @@ namespace ik_constraint2{
     const cnoid::Vector3& weight() const { return weight_;}
     cnoid::Vector3& weight() { return weight_;}
 
-    //内部状態更新
-    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
-    // 達成判定
-    virtual bool isSatisfied () const override;
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () override;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 収束判定
+    virtual bool isSatisfied() const override;
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const override;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   protected:
@@ -51,6 +55,9 @@ namespace ik_constraint2{
     cnoid::Vector3 maxError_ = 0.05 * cnoid::Vector3::Ones();
     double precision_ = 1e-4;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
+
+    cnoid::Matrix3 current_I_evalR_inv_ = cnoid::Matrix3::Identity();
+    cnoid::Vector3 current_error_eval_ = cnoid::Vector3::Zero();
 
     cnoid::BodyPtr jacobian_robot_ = nullptr;// 前回のjacobian計算時のrobot
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_full_;

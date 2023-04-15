@@ -2,7 +2,7 @@
 #include <ik_constraint2/Jacobian.h>
 
 namespace ik_constraint2{
-  void COMConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void COMConstraint::updateBounds () {
     // B - A
     cnoid::Vector3 A_p = this->A_robot_ ? this->A_robot_->centerOfMass() + this->A_localp() : this->A_localp();
     cnoid::Vector3 B_p = this->B_robot_ ? this->B_robot_->centerOfMass() + this->B_localp() : this->B_localp();
@@ -18,6 +18,53 @@ namespace ik_constraint2{
         idx++;
       }
     }
+
+    // distance計算用
+    this->current_error_eval_ = error_eval;
+
+    // this->maxIneq_とthis->minIneq_を求める
+    if(this->C_.cols() != 3 ||
+       this->C_.rows() != this->dl_.size() ||
+       this->du_.size() != this->dl_.size()){
+      std::cerr << "\x1b[31m" << "[COMConstraint::checkConvergence] dimension mismatch" << "\x1b[39m" << std::endl;
+      this->C_.resize(0,3);
+      this->du_.resize(0);
+      this->dl_.resize(0);
+    }
+    if(this->C_.rows() != this->maxCError_.size() ){
+      this->maxCError_ = cnoid::VectorX::Ones(this->C_.rows()) * 0.1;
+    }
+    if(this->minIneq_.rows() != this->C_.rows()) this->minIneq_ = Eigen::VectorXd(this->C_.rows());
+    if(this->maxIneq_.rows() != this->C_.rows()) this->maxIneq_ = Eigen::VectorXd(this->C_.rows());
+    cnoid::VectorX Ce = this->C_ * error_eval;
+    cnoid::VectorX u = this->du_ - Ce;
+    cnoid::VectorX l = this->dl_ - Ce;
+    for(size_t i=0; i<u.size(); i++){
+      this->maxIneq_[i] = std::max(u[i],-this->maxCError_[i]);
+      this->minIneq_[i] = std::min(l[i],this->maxCError_[i]);
+    }
+
+    // distance計算用
+    this->current_u_ = u;
+    this->current_l_ = l;
+
+    if(this->debugLevel_>=1){
+      std::cerr << "COMConstraint" << std::endl;
+      std::cerr << "A COM "<<A_p.transpose() << std::endl;
+      std::cerr << "B COM "<<B_p.transpose() << std::endl;
+      std::cerr << "error_eval" << std::endl;
+      std::cerr << error_eval.transpose() << std::endl;
+      std::cerr << "eq" << std::endl;
+      std::cerr << this->eq_.transpose() << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+    }
+
+  }
+
+  void COMConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
 
     // this->jqcobian_を求める
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -53,48 +100,15 @@ namespace ik_constraint2{
       }
     }
 
-    // this->maxIneq_とthis->minIneq_を求める
-    if(this->C_.cols() != 3 ||
-       this->C_.rows() != this->dl_.size() ||
-       this->du_.size() != this->dl_.size()){
-      std::cerr << "\x1b[31m" << "[COMConstraint::checkConvergence] dimension mismatch" << "\x1b[39m" << std::endl;
-      this->C_.resize(0,3);
-      this->du_.resize(0);
-      this->dl_.resize(0);
-    }
-    if(this->C_.rows() != this->maxCError_.size() ){
-      this->maxCError_ = cnoid::VectorX::Ones(this->C_.rows()) * 0.1;
-    }
-    if(this->minIneq_.rows() != this->C_.rows()) this->minIneq_ = Eigen::VectorXd(this->C_.rows());
-    if(this->maxIneq_.rows() != this->C_.rows()) this->maxIneq_ = Eigen::VectorXd(this->C_.rows());
-    cnoid::VectorX Ce = this->C_ * error_eval;
-    cnoid::VectorX u = this->du_ - Ce;
-    cnoid::VectorX l = this->dl_ - Ce;
-    for(size_t i=0; i<u.size(); i++){
-      this->maxIneq_[i] = std::max(u[i],-this->maxCError_[i]);
-      this->minIneq_[i] = std::min(l[i],this->maxCError_[i]);
-    }
-
     // this->jacobianIneq_を求める
-    this->jacobianIneq_ = this->C_ * this->jacobianineq_full_local_;
+    this->jacobianIneq_ = this->C_ * this->jacobian_full_local_;
 
     if(this->debugLevel_>=1){
       std::cerr << "COMConstraint" << std::endl;
-      std::cerr << "A COM "<<A_p.transpose() << std::endl;
-      std::cerr << "B COM "<<B_p.transpose() << std::endl;
-      std::cerr << "error_eval" << std::endl;
-      std::cerr << error_eval.transpose() << std::endl;
-      std::cerr << "eq" << std::endl;
-      std::cerr << this->eq_.transpose() << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
-      std::cerr << "minIneq" << std::endl;
-      std::cerr << this->minIneq_.transpose() << std::endl;
-      std::cerr << "maxIneq" << std::endl;
-      std::cerr << this->maxIneq_.transpose() << std::endl;
       std::cerr << "jacobianIneq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
-
     }
 
     return;
@@ -109,6 +123,10 @@ namespace ik_constraint2{
       if(this->maxIneq_[i] < 0.0) cost2 += std::pow(this->maxIneq_[i], 2);
     }
     return this->eq_.norm() < this->precision_ && cost2 < std::pow(this->CPrecision_,2);
+  }
+
+  double COMConstraint::distance() const{
+    return std::sqrt(this->current_error_eval_.cwiseProduct(this->weight_).squaredNorm() + this->current_l_.cwiseMax(Eigen::VectorXd::Zero(this->current_l_.size())).squaredNorm() + this->current_u_.cwiseMin(Eigen::VectorXd::Zero(this->current_u_.size())).squaredNorm());
   }
 
   std::vector<cnoid::SgNodePtr>& COMConstraint::getDrawOnObjects(){

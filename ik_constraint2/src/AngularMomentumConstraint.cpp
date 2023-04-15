@@ -136,7 +136,7 @@ namespace ik_constraint2 {
 }
 
 namespace ik_constraint2{
-  void AngularMomentumConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void AngularMomentumConstraint::updateBounds () {
     if(this->robot_) {
       Eigen::MatrixXd AMJ;
       cnoid18::calcAngularMomentumJacobian(this->robot_,nullptr,AMJ); // [joint root]の順. comまわり
@@ -158,6 +158,31 @@ namespace ik_constraint2{
       // this->eq_を求める. target - current
       if(this->eq_.rows() != 3) this->eq_ = Eigen::VectorXd(3);
       for(int i=0;i<3;i++) this->eq_[i] = std::max(std::min(-error_scaled[i], this->maxError_[i]), -this->maxError_[i]) * this->weight_[i];
+
+      // キャッシュ及びdistance計算用
+      this->current_I_evalR_inv_ = I_evalR_inv;
+      this->current_error_eval_ = error_scaled;
+
+      if(this->debugLevel_>=1){
+        std::cerr << "AngularMomentumConstraint" << std::endl;
+        std::cerr << "AngularMomentum" << std::endl;
+        std::cerr << this->eval_R_.transpose() * AMJ * dq * this->dt_ << std::endl;
+        std::cerr << "I_evalR" << std::endl;
+        std::cerr << I_evalR << std::endl;
+        std::cerr << "error" << std::endl;
+        std::cerr << error << std::endl;
+        std::cerr << "error_scaled" << std::endl;
+        std::cerr << error_scaled << std::endl;
+        std::cerr << "eq" << std::endl;
+        std::cerr << this->eq_.transpose() << std::endl;
+      }
+    }else{
+      std::cerr << "AngularMomentumConstraint::update() : !this->robot_" << std::endl;
+    }
+  }
+
+  void AngularMomentumConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    if(this->robot_) {
 
       // this->jacobian_を求める
       // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -183,7 +208,7 @@ namespace ik_constraint2{
       Eigen::SparseMatrix<double,Eigen::RowMajor> eval_R_sparse(3,3);
       for(int i=0;i<3;i++) for(int j=0;j<3;j++) eval_R_sparse.insert(i,j) = this->eval_R_(i,j);
       Eigen::SparseMatrix<double,Eigen::RowMajor> I_evalR_inv_sparse(3,3);
-      for(int i=0;i<3;i++) I_evalR_inv_sparse.insert(i,i) = 1.0/I_evalR(i,i);
+      for(int i=0;i<3;i++) I_evalR_inv_sparse.insert(i,i) = this->current_I_evalR_inv_(i,i);
 
       this->jacobian_ = I_evalR_inv_sparse * eval_R_sparse.transpose() * this->jacobian_full_;
       for(size_t i=0;i<3;i++) this->jacobian_.row(i) *= this->weight_[i];
@@ -193,16 +218,6 @@ namespace ik_constraint2{
 
       if(this->debugLevel_>=1){
         std::cerr << "AngularMomentumConstraint" << std::endl;
-        std::cerr << "AngularMomentum" << std::endl;
-        std::cerr << this->eval_R_.transpose() * AMJ * dq * this->dt_ << std::endl;
-        std::cerr << "I_evalR" << std::endl;
-        std::cerr << I_evalR << std::endl;
-        std::cerr << "error" << std::endl;
-        std::cerr << error << std::endl;
-        std::cerr << "error_scaled" << std::endl;
-        std::cerr << error_scaled << std::endl;
-        std::cerr << "eq" << std::endl;
-        std::cerr << this->eq_.transpose() << std::endl;
         std::cerr << "jacobian" << std::endl;
         std::cerr << this->jacobian_ << std::endl;
       }
@@ -217,6 +232,11 @@ namespace ik_constraint2{
   bool AngularMomentumConstraint::isSatisfied() const{
     return this->eq_.norm() < this->precision_;
   }
+
+  double AngularMomentumConstraint::distance() const{
+    return this->current_error_eval_.cwiseProduct(this->weight_).norm();
+  }
+
 
   void AngularMomentumConstraint::calcAngularMomentumJacobianShape(const std::vector<cnoid::LinkPtr>& joints,
                                                                    const cnoid::BodyPtr& A_robot,

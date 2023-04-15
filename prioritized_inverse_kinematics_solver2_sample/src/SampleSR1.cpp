@@ -119,7 +119,7 @@ int main(void){
   for(size_t i=0;i<constraints.size();i++){
     for(size_t j=0;j<constraints[i].size();j++){
       constraints[i][j]->debugLevel() = 0;//not debug
-      constraints[i][j]->update(variables);
+      constraints[i][j]->updateBounds();
       if(constraints[i][j]->isSatisfied()) std::cerr << "constraint " << i << " " << j << ": satisfied"<< std::endl;
       else std::cerr << "constraint " << i << " " << j << ": NOT satisfied"<< std::endl;
     }

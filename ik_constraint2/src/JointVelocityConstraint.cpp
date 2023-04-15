@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace ik_constraint2{
-  void JointVelocityConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void JointVelocityConstraint::updateBounds () {
     if(!this->joint_) {
       std::cerr << "[JointVelocityConstraint::update] !this->joint_" << std::endl;
       return;
@@ -19,6 +19,9 @@ namespace ik_constraint2{
       if(this->maxIneq_.rows() != 1) this->maxIneq_ = Eigen::VectorXd(1);
       this->maxIneq_[0] = std::max(upper, -this->maxError_) * this->weight_;
 
+      // distance計算用
+      this->current_lower_ = lower;
+      this->current_upper_ = upper;
     }else if (this->joint_->isFreeJoint()){
       cnoid::Vector6 lower, upper;
       lower.head<3>() = (cnoid::Vector3::Ones() * this->joint_->dq_lower() - this->joint_->v()) * dt_;
@@ -30,6 +33,26 @@ namespace ik_constraint2{
       for(size_t i=0;i<6;i++) this->minIneq_[i] = std::min(lower[i], this->maxError_) * this->weight_;
       if(this->maxIneq_.rows() != 6) this->maxIneq_ = Eigen::VectorXd(6);
       for(size_t i=0;i<6;i++) this->maxIneq_[i] = std::max(upper[i], -this->maxError_) * this->weight_;
+
+      // distance計算用
+      this->current_lower6_ = lower;
+      this->current_upper6_ = upper;
+    }
+
+    if(this->debugLevel_>=1){
+      std::cerr << "JointVelocityConstraint" << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+    }
+
+  }
+
+  void JointVelocityConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    if(!this->joint_) {
+      std::cerr << "[JointVelocityConstraint::update] !this->joint_" << std::endl;
+      return;
     }
 
     // this->jacobianIneq_
@@ -76,10 +99,6 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=1){
       std::cerr << "JointVelocityConstraint" << std::endl;
-      std::cerr << "minIneq" << std::endl;
-      std::cerr << this->minIneq_.transpose() << std::endl;
-      std::cerr << "maxIneq" << std::endl;
-      std::cerr << this->maxIneq_.transpose() << std::endl;
       std::cerr << "jacobianIneq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
     }
@@ -98,5 +117,14 @@ namespace ik_constraint2{
     return cost2 < std::pow(this->precision_,2);
   }
 
+  double JointVelocityConstraint::distance() const{
+    if(!this->joint_) return 0.0;
+    if (this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint()) {
+      std::sqrt(std::pow(std::max(this->current_lower_,0.0), 2) + std::pow(std::min(this->current_upper_,0.0), 2))*this->weight_;
+    }else if (this->joint_->isFreeJoint()){
+      std::sqrt(this->current_lower6_.cwiseMax(Eigen::VectorXd::Zero(this->current_lower6_.size())).squaredNorm() + this->current_upper6_.cwiseMin(Eigen::VectorXd::Zero(this->current_upper6_.size())).squaredNorm())*this->weight_;
+    }
+    return 0.0;
+  }
 
 }

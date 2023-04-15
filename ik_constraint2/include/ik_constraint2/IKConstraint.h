@@ -11,12 +11,16 @@ namespace ik_constraint2{
   {
   public:
 
-    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> update() -> isSatisfied / getEq / getJacobian / getMin/MaxIneq / getJacobianIneq / getDrawOnObjects の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
+    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> updateBounds() -> (isSatisfied / getEq / getMin/MaxIneq / distance) -> updateJacobian() -> getJacobian / getJacobianIneq / getDrawOnObjects の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
 
-    // 内部状態更新
-    virtual void update (const std::vector<cnoid::LinkPtr>& joints) = 0;
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () = 0;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) = 0;
     // 達成判定
-    virtual bool isSatisfied () const {return true;}
+    virtual bool isSatisfied () const {return this->distance() == 0.0;}
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const { return std::sqrt(this->eq_.squaredNorm() + this->minIneq_.cwiseMax(Eigen::VectorXd::Zero(this->minIneq_.size())).squaredNorm() + this->maxIneq_.cwiseMin(Eigen::VectorXd::Zero(this->maxIneq_.size())).squaredNorm()); }
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() {return this->drawOnObjects_;}
     // 等式制約のエラーを返す.  // getEq = getJacobian * dq となるようなdqを探索する

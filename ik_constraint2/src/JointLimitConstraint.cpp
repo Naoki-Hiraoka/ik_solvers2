@@ -2,13 +2,35 @@
 #include <iostream>
 
 namespace ik_constraint2{
-  void JointLimitConstraint::update (const std::vector<cnoid::LinkPtr>& joints) {
+  void JointLimitConstraint::updateBounds () {
     if(!this->joint_ || !(this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint())) {
       std::cerr << "[JointLimitConstraint::update] !this->joint_ || !(this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint())" << std::endl;
       return;
     }
 
     this->calcMinMaxIneq(this->maxIneq_, this->minIneq_);
+
+    if(this->debugLevel_>=1){
+      std::cerr << "JointLimitConstraint" << std::endl;
+      std::cerr << "q" << std::endl;
+      std::cerr << this->joint_->q() << std::endl;
+      std::cerr << "q_upper" << std::endl;
+      std::cerr << this->joint_->q_upper() << std::endl;
+      std::cerr << "q_lower" << std::endl;
+      std::cerr << this->joint_->q_lower() << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+    }
+
+  }
+
+  void JointLimitConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    if(!this->joint_ || !(this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint())) {
+      std::cerr << "[JointLimitConstraint::update] !this->joint_ || !(this->joint_->isRotationalJoint() || this->joint_->isPrismaticJoint())" << std::endl;
+      return;
+    }
 
     // this->jacobianIneq_を作る
     if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_) ||
@@ -43,16 +65,6 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=1){
       std::cerr << "JointLimitConstraint" << std::endl;
-      std::cerr << "q" << std::endl;
-      std::cerr << this->joint_->q() << std::endl;
-      std::cerr << "q_upper" << std::endl;
-      std::cerr << this->joint_->q_upper() << std::endl;
-      std::cerr << "q_lower" << std::endl;
-      std::cerr << this->joint_->q_lower() << std::endl;
-      std::cerr << "minIneq" << std::endl;
-      std::cerr << this->minIneq_.transpose() << std::endl;
-      std::cerr << "maxIneq" << std::endl;
-      std::cerr << this->maxIneq_.transpose() << std::endl;
       std::cerr << "jacobianIneq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
     }
@@ -71,6 +83,10 @@ namespace ik_constraint2{
     return cost2 < std::pow(this->precision_,2);
   }
 
+  double JointLimitConstraint::distance() const{
+    return std::sqrt(std::pow(std::max(this->current_lower_,0.0), 2) + std::pow(std::min(this->current_upper_,0.0), 2))*this->weight_;
+  }
+
   void JointLimitConstraint::calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq){
     double lower = this->joint_->q_lower() - this->joint_->q();
     double upper = this->joint_->q_upper() - this->joint_->q();
@@ -80,6 +96,11 @@ namespace ik_constraint2{
     minIneq[0] = std::min(lower, this->maxError_) * this->weight_;
     if(maxIneq.rows() != 1) maxIneq = Eigen::VectorXd(1);
     maxIneq[0] = std::max(upper, -this->maxError_) * this->weight_;
+
+    // distance計算用
+    this->current_lower_ = lower;
+    this->current_upper_ = upper;
+
     return;
   }
 

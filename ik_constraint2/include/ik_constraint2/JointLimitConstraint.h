@@ -22,10 +22,14 @@ namespace ik_constraint2{
     const double& weight() const { return weight_;}
     double& weight() { return weight_;}
 
-    //内部状態更新
-    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () override;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) override;
     // 達成判定
     virtual bool isSatisfied () const override;
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const override;
 
   protected:
     virtual void calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq);
@@ -34,6 +38,9 @@ namespace ik_constraint2{
     double precision_ = 1e-3;
     double maxError_ = 0.05;
     double weight_ = 1.0;
+
+    double current_lower_ = 0.0;
+    double current_upper_ = 0.0;
 
     cnoid::LinkPtr jacobianineq_joint_ = nullptr; //前回jacobian_を計算した時のjoint
 

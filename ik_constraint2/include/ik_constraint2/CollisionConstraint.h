@@ -7,8 +7,6 @@ namespace ik_constraint2{
   class CollisionConstraint : public IKConstraint
   {
   public:
-    CollisionConstraint();
-
     // A_linkとB_linkの干渉を回避する
     //  tolerance: この値以上離す[m]
     //  precision: 収束判定の閾値. distance - torelanceと比べる
@@ -32,10 +30,15 @@ namespace ik_constraint2{
     const double& velocityDamper() const { return velocityDamper_;}
     double& velocityDamper() { return velocityDamper_;}
 
-    //内部状態更新
-    virtual void update (const std::vector<cnoid::LinkPtr>& joints) override;
+    // 内部状態更新. eq, minIneq, maxIneqを生成
+    virtual void updateBounds () override;
+    // 内部状態更新. jacobian, jacobianIneqを生成
+    virtual void updateJacobian (const std::vector<cnoid::LinkPtr>& joints) override;
     // 達成判定
     virtual bool isSatisfied () const override;
+    // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
+    virtual double distance() const override;
+
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
 

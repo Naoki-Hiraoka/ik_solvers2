@@ -7,10 +7,11 @@
 #include <cnoid/TimeMeasure>
 
 namespace prioritized_inverse_kinematics_solver2 {
-  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list){
+  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, bool updateJacobian=true){
     for ( int i=0; i<ikc_list.size(); i++ ) {
       for(size_t j=0;j<ikc_list[i].size(); j++){
-        ikc_list[i][j]->update(variables);
+        ikc_list[i][j]->updateBounds();
+        if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
       }
     }
   }
@@ -223,7 +224,7 @@ namespace prioritized_inverse_kinematics_solver2 {
     }
 
     if(param.checkFinalState){
-      updateConstraints(variables, ikc_list);
+      updateConstraints(variables, ikc_list, false);
       if (checkConstraintsSatisfied(ikc_list)) return true;
       else return false;
     }else{
