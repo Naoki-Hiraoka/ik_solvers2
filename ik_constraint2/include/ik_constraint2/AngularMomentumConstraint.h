@@ -53,7 +53,7 @@ namespace ik_constraint2{
     double dt_ = 1e-2;
 
     cnoid::Vector3 maxError_ = 0.05 * cnoid::Vector3::Ones();
-    double precision_ = 1e-4;
+    double precision_ = 1e-3;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 
     cnoid::Matrix3 current_I_evalR_inv_ = cnoid::Matrix3::Identity();

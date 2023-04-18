@@ -53,7 +53,7 @@ namespace ik_constraint2{
     cnoid::LinkPtr B_link_ = nullptr;
     cnoid::Position B_localpos_ = cnoid::Position::Identity();
     cnoid::Vector6 maxError_ = (cnoid::Vector6()<<0.05,0.05,0.05,0.05,0.05,0.05).finished();
-    double precision_ = 1e-4;
+    double precision_ = 1e-3;
     cnoid::Vector6 weight_ = cnoid::Vector6::Ones();
     cnoid::LinkPtr eval_link_ = nullptr;
     cnoid::Matrix3d eval_localR_ = cnoid::Matrix3d::Identity();

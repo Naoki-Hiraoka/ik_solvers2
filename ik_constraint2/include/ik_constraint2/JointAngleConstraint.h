@@ -36,7 +36,7 @@ namespace ik_constraint2{
   private:
     cnoid::LinkPtr joint_ = nullptr;
     double targetq_ = 0.0;
-    double precision_ = 1e-4;
+    double precision_ = 1e-3;
     double maxError_ = 0.05;
     double weight_ = 1.0;
 

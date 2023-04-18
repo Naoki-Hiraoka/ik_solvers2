@@ -69,14 +69,14 @@ namespace ik_constraint2{
     cnoid::Matrix3d eval_R_ = cnoid::Matrix3d::Identity();
 
     cnoid::Vector3 maxError_ = 0.05 * cnoid::Vector3::Ones();
-    double precision_ = 1e-4;
+    double precision_ = 1e-3;
     cnoid::Vector3 weight_ = cnoid::Vector3::Ones();
 
     Eigen::SparseMatrix<double,Eigen::RowMajor> C_{0,3};
     cnoid::VectorX dl_;
     cnoid::VectorX du_;
     cnoid::VectorX maxCError_;
-    double CPrecision_ = 1e-4;
+    double CPrecision_ = 1e-3;
 
     cnoid::SgLineSetPtr lines_;
     cnoid::Vector3 current_error_eval_ = cnoid::Vector3::Zero();
