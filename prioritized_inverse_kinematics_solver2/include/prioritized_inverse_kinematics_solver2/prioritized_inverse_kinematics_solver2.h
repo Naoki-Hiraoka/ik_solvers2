@@ -23,6 +23,8 @@ namespace prioritized_inverse_kinematics_solver2 {
     std::vector<double> wnVec; // wnVec.size() == ikc_list.size()の場合、wnの代わりにこっちを使う
     double we = 1e0;
     std::vector<double> weVec; // weVec.size() == ikc_list.size()の場合、weの代わりにこっちを使う
+    double wmax = 1e-1;
+    std::vector<double> wmaxVec; // wmaxVec.size() == ikc_list.size()の場合、wmaxの代わりにこっちを使う
     int debugLevel = 0;
     double dt = 0.1;
     bool calcVelocity = true; // dtを用いて速度の計算をするかどうか. 速度を利用するconstraintがあるなら必須. ないなら、falseにすると高速化が見込まれる

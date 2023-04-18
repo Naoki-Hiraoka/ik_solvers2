@@ -99,7 +99,7 @@ namespace prioritized_inverse_kinematics_solver2 {
         if(prevTasks[i]->dl()[j]>0) sumError += std::pow(prevTasks[i]->dl()[j],2);
         if(prevTasks[i]->du()[j]<0) sumError += std::pow(prevTasks[i]->du()[j],2);
       }
-      prevTasks[i]->w() = cnoid::VectorXd::Ones(dim) * (sumError * ((param.weVec.size()==ikc_list.size())?param.weVec[i]:param.we)+ ((param.wnVec.size()==ikc_list.size())?param.wnVec[i]:param.wn));
+      prevTasks[i]->w() = cnoid::VectorXd::Ones(dim) * std::min(((param.wmaxVec.size()==ikc_list.size())?param.wmaxVec[i]:param.wmax), (sumError * ((param.weVec.size()==ikc_list.size())?param.weVec[i]:param.we)+ ((param.wnVec.size()==ikc_list.size())?param.wnVec[i]:param.wn)));
       if(param.dqWeight.size() == dim) {
         for(int j=0;j<dim;j++) prevTasks[i]->w()[j] *= param.dqWeight[j];
       }
