@@ -329,4 +329,15 @@ namespace ik_constraint2{
       }
     }
   }
+
+  std::shared_ptr<IKConstraint> AngularMomentumConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<AngularMomentumConstraint> ret = std::make_shared<AngularMomentumConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void AngularMomentumConstraint::copy(std::shared_ptr<AngularMomentumConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    if(modelMap.find(this->robot_) != modelMap.end()) ret->robot() = modelMap.find(this->robot_)->second;
+  }
+
 }

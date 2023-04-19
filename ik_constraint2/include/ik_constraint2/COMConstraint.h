@@ -60,6 +60,9 @@ namespace ik_constraint2{
     virtual double distance() const override;
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
+    // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
+    virtual std::shared_ptr<IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
+    void copy(std::shared_ptr<COMConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
   protected:
     cnoid::BodyPtr A_robot_ = nullptr;

@@ -41,6 +41,8 @@ namespace ik_constraint2{
 
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
+    // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
+    void copy(std::shared_ptr<CollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
   protected:
     //A_v, B_vはlocal系

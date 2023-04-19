@@ -104,4 +104,14 @@ namespace ik_constraint2{
     return;
   }
 
+  std::shared_ptr<IKConstraint> JointLimitConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<JointLimitConstraint> ret = std::make_shared<JointLimitConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void JointLimitConstraint::copy(std::shared_ptr<JointLimitConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    if(this->joint_ && modelMap.find(this->joint_->body()) != modelMap.end()) ret->joint() = modelMap.find(this->joint_->body())->second->link(this->joint_->index());
+  }
+
 }

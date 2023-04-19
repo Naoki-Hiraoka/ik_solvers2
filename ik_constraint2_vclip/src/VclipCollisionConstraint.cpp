@@ -49,4 +49,15 @@ namespace ik_constraint2_vclip{
 
     return true;
   }
+
+  std::shared_ptr<ik_constraint2::IKConstraint> VclipCollisionConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<VclipCollisionConstraint> ret = std::make_shared<VclipCollisionConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void VclipCollisionConstraint::copy(std::shared_ptr<VclipCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    CollisionConstraint::copy(ret, modelMap);
+  }
+
 }

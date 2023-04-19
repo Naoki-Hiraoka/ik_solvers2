@@ -192,4 +192,16 @@ namespace ik_constraint2{
 
     return this->drawOnObjects_;
   }
+
+  std::shared_ptr<IKConstraint> PositionConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<PositionConstraint> ret = std::make_shared<PositionConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void PositionConstraint::copy(std::shared_ptr<PositionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    if(this->A_link_ && modelMap.find(this->A_link_->body()) != modelMap.end()) ret->A_link() = modelMap.find(this->A_link_->body())->second->link(this->A_link_->index());
+    if(this->B_link_ && modelMap.find(this->B_link_->body()) != modelMap.end()) ret->B_link() = modelMap.find(this->B_link_->body())->second->link(this->B_link_->index());
+    if(this->eval_link_ && modelMap.find(this->eval_link_->body()) != modelMap.end()) ret->eval_link() = modelMap.find(this->eval_link_->body())->second->link(this->eval_link_->index());
+  }
 }

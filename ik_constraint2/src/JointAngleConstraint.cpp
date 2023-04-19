@@ -83,5 +83,14 @@ namespace ik_constraint2{
     return std::abs(this->current_error_ * this->weight_);
   }
 
+  std::shared_ptr<IKConstraint> JointAngleConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<JointAngleConstraint> ret = std::make_shared<JointAngleConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void JointAngleConstraint::copy(std::shared_ptr<JointAngleConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    if(this->joint_ && modelMap.find(this->joint_->body()) != modelMap.end()) ret->joint() = modelMap.find(this->joint_->body())->second->link(this->joint_->index());
+  }
 
 }

@@ -127,4 +127,14 @@ namespace ik_constraint2{
     return 0.0;
   }
 
+  std::shared_ptr<IKConstraint> JointVelocityConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<JointVelocityConstraint> ret = std::make_shared<JointVelocityConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void JointVelocityConstraint::copy(std::shared_ptr<JointVelocityConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    if(this->joint_ && modelMap.find(this->joint_->body()) != modelMap.end()) ret->joint() = modelMap.find(this->joint_->body())->second->link(this->joint_->index());
+  }
+
 }

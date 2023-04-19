@@ -11,6 +11,10 @@ namespace ik_constraint2_joint_limit_table{
 
     const std::vector<std::shared_ptr<joint_limit_table::JointLimitTable> >& jointLimitTables() const { return jointLimitTables_;}
     std::vector<std::shared_ptr<joint_limit_table::JointLimitTable> >& jointLimitTables() { return jointLimitTables_;}
+    // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
+    virtual std::shared_ptr<ik_constraint2::IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
+    void copy(std::shared_ptr<JointLimitMinMaxTableConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
+
 
   protected:
     virtual void calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq) override;

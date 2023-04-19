@@ -37,6 +37,9 @@ namespace ik_constraint2{
     const int& debugLevel() const { return debugLevel_;}
     int& debugLevel() { return debugLevel_;}
 
+    // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
+    virtual std::shared_ptr<IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const = 0;
+
     static inline size_t getJointDOF(const cnoid::LinkPtr& joint) {
       if(joint->isRevoluteJoint() || joint->isPrismaticJoint()) return 1;
       else if(joint->isFreeJoint()) return 6;

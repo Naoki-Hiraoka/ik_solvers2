@@ -15,4 +15,15 @@ namespace ik_constraint2 {
 
     return true;
   }
+
+  std::shared_ptr<IKConstraint> ClientCollisionConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    std::shared_ptr<ClientCollisionConstraint> ret = std::make_shared<ClientCollisionConstraint>(*this);
+    this->copy(ret, modelMap);
+    return ret;
+  }
+
+  void ClientCollisionConstraint::copy(std::shared_ptr<ClientCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
+    CollisionConstraint::copy(ret, modelMap);
+  }
+
 }
