@@ -58,6 +58,10 @@ namespace ik_constraint2_vclip{
 
   void VclipCollisionConstraint::copy(std::shared_ptr<VclipCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
     CollisionConstraint::copy(ret, modelMap);
+
+    //vclipModelは使いまわす
+    if(this->A_link_vclipModel_ && modelMap.find(this->A_link_vclipModel_->body()) != modelMap.end()) ret->A_link_vclipModel() = modelMap.find(this->A_link_vclipModel_->body())->second->link(this->A_link_vclipModel_->index());
+    if(this->B_link_vclipModel_ && modelMap.find(this->B_link_vclipModel_->body()) != modelMap.end()) ret->B_link_vclipModel() = modelMap.find(this->B_link_vclipModel_->body())->second->link(this->B_link_vclipModel_->index());
   }
 
 }
