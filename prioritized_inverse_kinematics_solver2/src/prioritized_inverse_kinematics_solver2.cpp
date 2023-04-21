@@ -161,11 +161,30 @@ namespace prioritized_inverse_kinematics_solver2 {
     double q;
   };
 
+  inline void link2Frame(const std::vector<cnoid::LinkPtr>& links, std::vector<double>& frame){
+    frame.clear();
+    for(int l=0;l<links.size();l++){
+      if(links[l]->isRevoluteJoint() || links[l]->isPrismaticJoint()) {
+        frame.push_back(links[l]->q());
+      }else if(links[l]->isFreeJoint()) {
+        frame.push_back(links[l]->p()[0]);
+        frame.push_back(links[l]->p()[1]);
+        frame.push_back(links[l]->p()[2]);
+        cnoid::Quaternion q(links[l]->R());
+        frame.push_back(q.x());
+        frame.push_back(q.y());
+        frame.push_back(q.z());
+        frame.push_back(q.w());
+      }
+    }
+  }
+
   bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
-                   const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
-                   std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
-                   const IKParam& param,
-                   std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc) {
+                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
+                    const IKParam& param,
+                    std::shared_ptr<std::vector<std::vector<double> > > path,
+                    std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc) {
     std::set<cnoid::BodyPtr> bodies;
     for(size_t i=0;i<variables.size();i++){
       if(variables[i]->body()) bodies.insert(variables[i]->body());
@@ -176,6 +195,11 @@ namespace prioritized_inverse_kinematics_solver2 {
       if(variables[i]->isFreeJoint()) initialJointStateMap[variables[i]] = InitialJointState(variables[i]->T());
       else if(variables[i]->isRotationalJoint() || variables[i]->isPrismaticJoint()) initialJointStateMap[variables[i]] = InitialJointState(variables[i]->q());
       else initialJointStateMap[variables[i]] = InitialJointState();
+    }
+
+    if(path != nullptr) {
+      path->resize(1);
+      link2Frame(variables, path->at(0));
     }
 
     for(int loop=0; loop < param.maxIteration; loop++) {
@@ -205,6 +229,10 @@ namespace prioritized_inverse_kinematics_solver2 {
         }
       }
       bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
+      if(path != nullptr) {
+        path->resize(path->size() + 1);
+        link2Frame(variables, path->back());
+      }
       if(converged) break;
     }
 
