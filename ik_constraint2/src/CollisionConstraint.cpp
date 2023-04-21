@@ -6,6 +6,11 @@
 
 namespace ik_constraint2{
   void CollisionConstraint::updateBounds () {
+    if(this->A_link_ == nullptr || this->B_link_ == nullptr) {
+      std::cerr << "this->A_link_ == nullptr || this->B_link_ == nullptr" << std::endl;
+      return;
+    }
+
     // minIneq/maxIneqの計算
     if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
     if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
