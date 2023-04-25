@@ -11,7 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>choreonoid_vclip</depend>
-  <depend>choreonoid_qhull</depend>
   <depend>choreonoid</depend>
   <depend>ik_constraint2</depend>
 

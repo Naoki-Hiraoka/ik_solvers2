@@ -6,15 +6,14 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
-  choreonoid_vclip
-  choreonoid_qhull)
+  choreonoid_vclip)
 
 find_package(choreonoid REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ik_constraint2_vclip
-  CATKIN_DEPENDS choreonoid_vclip choreonoid_qhull ik_constraint2
+  CATKIN_DEPENDS choreonoid_vclip ik_constraint2
   #  DEPENDS system_lib
   )
 
