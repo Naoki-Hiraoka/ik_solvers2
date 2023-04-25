@@ -60,6 +60,7 @@ namespace ik_constraint2_distance_field{
     // ユーザーは使わない. copy()の中で使われる
     cnoid::LinkPtr& A_link_vertices() { return A_link_vertices_; }
     const cnoid::LinkPtr& A_link_vertices() const { return A_link_vertices_; }
+
   protected:
     //A_v, B_vはlocal系
     virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) override;
@@ -81,7 +82,7 @@ namespace ik_constraint2_distance_field{
   };
 
   // link local frame
-  std::vector<cnoid::Vector3f> getSurfaceVertices(cnoid::LinkPtr link, double resolution = 0.01);
+  std::vector<cnoid::Vector3f> getSurfaceVertices(cnoid::LinkPtr link, double resolution = 0.02);
 }
 
 #endif

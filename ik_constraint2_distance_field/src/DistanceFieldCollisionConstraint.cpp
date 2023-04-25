@@ -123,7 +123,7 @@ namespace ik_constraint2_distance_field{
 
     Eigen::Affine3f linkT = A_link->T().cast<float>();
 
-    double min_dist = this->field_->getUninitializedDistance() + 1; // getUninitializedDistance() returns max_distance
+    double min_dist = field->getUninitializedDistance() + 1; // getUninitializedDistance() returns max_distance
     cnoid::Vector3f closest_v = cnoid::Vector3f::Zero(); // link local
     cnoid::Vector3 closest_point_fieldLocal = cnoid::Vector3::Zero(); // field local
     cnoid::Vector3 closest_direction_fieldLocal = cnoid::Vector3::UnitX(); // field local
@@ -146,7 +146,7 @@ namespace ik_constraint2_distance_field{
 
       cnoid::Vector3 grad;
       bool in_bound; // Whether or not the (x,y,z) is valid for gradient purposes.
-      double dist = this->field_->getDistanceGradient(v_fieldLocal[0],v_fieldLocal[1],v_fieldLocal[2],grad[0],grad[1],grad[2],in_bound);
+      double dist = field->getDistanceGradient(v_fieldLocal[0],v_fieldLocal[1],v_fieldLocal[2],grad[0],grad[1],grad[2],in_bound);
       if(dist < min_dist_grad_invalid) {
           min_dist_grad_invalid = dist;
           closest_v_grad_invalid = this->A_vertices_[j];
@@ -165,13 +165,13 @@ namespace ik_constraint2_distance_field{
       }
     }
 
-    if(min_dist_grad_invalid >= this->field_->getUninitializedDistance()){
+    if(min_dist_grad_invalid >= field->getUninitializedDistance()){
       // 障害物と遠すぎて近傍点が計算できていない
       distance = min_dist_grad_invalid;
       direction = cnoid::Vector3::UnitX(); // てきとう
       A_v = closest_v_grad_invalid.cast<double>();
       B_v = (A_link->T() * A_v) - direction * distance;
-    }else if (min_dist >= this->field_->getUninitializedDistance() ||
+    }else if (min_dist >= field->getUninitializedDistance() ||
               min_dist_grad_invalid < min_dist) {
       // 障害物と近すぎて近傍点が計算できていない
       // 干渉時は近傍点が正しくない場合があるので、干渉直前の値を使う
@@ -180,8 +180,8 @@ namespace ik_constraint2_distance_field{
       B_v = this->prev_B_localp_;
       distance = ((A_link->T() * this->prev_A_localp_) - this->prev_B_localp_).dot(this->prev_direction_);
     }else{
-      cnoid::Vector3 closest_point = this->fieldOrigin_ * closest_point_fieldLocal;
-      cnoid::Vector3 closest_direction = this->fieldOrigin_.linear() * closest_direction_fieldLocal;
+      cnoid::Vector3 closest_point = fieldOrigin * closest_point_fieldLocal;
+      cnoid::Vector3 closest_direction = fieldOrigin.linear() * closest_direction_fieldLocal;
 
       distance = min_dist;
       direction = closest_direction;
