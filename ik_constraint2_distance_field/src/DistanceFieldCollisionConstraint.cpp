@@ -68,9 +68,9 @@ namespace ik_constraint2_distance_field{
         for(double m=0;m<l1;m+=resolution){
           for(double n=0;n<l2-(l2/l1*m);n+=resolution){
             cnoid::Vector3f v = v0 + n1 * m + n2 * n;
-            int x = int((v[0] - bbx.min()[0])/resolution);
-            int y = int((v[1] - bbx.min()[1])/resolution);
-            int z = int((v[2] - bbx.min()[2])/resolution);
+            int x = int((v[0] - bbx.min()[0])/resolution); x = std::max(0, std::min(int(bin.size()-1), x));
+            int y = int((v[1] - bbx.min()[1])/resolution); y = std::max(0, std::min(int(bin[0].size()-1), y));
+            int z = int((v[2] - bbx.min()[2])/resolution); z = std::max(0, std::min(int(bin[0][0].size()-1), z));
             if(!bin[x][y][z]){
               bin[x][y][z] = true;
               vertices.push_back(v);
@@ -78,9 +78,9 @@ namespace ik_constraint2_distance_field{
           }
           double n=l2-l2/l1*m;
           cnoid::Vector3f v = v0 + n1 * m + n2 * n;
-          int x = int((v[0] - bbx.min()[0])/resolution);
-          int y = int((v[1] - bbx.min()[1])/resolution);
-          int z = int((v[2] - bbx.min()[2])/resolution);
+          int x = int((v[0] - bbx.min()[0])/resolution); x = std::max(0, std::min(int(bin.size()-1), x));
+          int y = int((v[1] - bbx.min()[1])/resolution); y = std::max(0, std::min(int(bin[0].size()-1), y));
+          int z = int((v[2] - bbx.min()[2])/resolution); z = std::max(0, std::min(int(bin[0][0].size()-1), z));
           if(!bin[x][y][z]){
             bin[x][y][z] = true;
             vertices.push_back(v);
@@ -89,9 +89,9 @@ namespace ik_constraint2_distance_field{
         double m = l1;
         double n= 0;
         cnoid::Vector3f v = v0 + n1 * m + n2 * n;
-        int x = int((v[0] - bbx.min()[0])/resolution);
-        int y = int((v[1] - bbx.min()[1])/resolution);
-        int z = int((v[2] - bbx.min()[2])/resolution);
+        int x = int((v[0] - bbx.min()[0])/resolution); x = std::max(0, std::min(int(bin.size()-1), x));
+        int y = int((v[1] - bbx.min()[1])/resolution); y = std::max(0, std::min(int(bin[0].size()-1), y));
+        int z = int((v[2] - bbx.min()[2])/resolution); z = std::max(0, std::min(int(bin[0][0].size()-1), z));
         if(!bin[x][y][z]){
           bin[x][y][z] = true;
           vertices.push_back(v);

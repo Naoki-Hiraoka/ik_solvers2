@@ -64,7 +64,7 @@ namespace ik_constraint2_distance_field{
     //A_v, B_vはlocal系
     virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) override;
 
-    double resolution_ = 0.01;
+    double resolution_ = 0.02;
     std::shared_ptr<distance_field::PropagationDistanceField> field_ = nullptr;
     cnoid::Position fieldOrigin_ = cnoid::Position::Identity();
     double minDistance_ = -0.02;

@@ -121,6 +121,8 @@ namespace ik_constraint2{
       this->drawOnObjects_ = std::vector<cnoid::SgNodePtr>{this->lines_};
     }
 
+    if(this->currentDistance_ >= this->ignoreDistance_) return this->dummyDrawOnObjects_;
+
     const cnoid::Vector3& A_pos = (this->A_link_) ? this->A_link_->T() * this->A_currentLocalp_ : this->A_currentLocalp_;
     const cnoid::Vector3& B_pos = (this->B_link_) ? this->B_link_->T() * this->B_currentLocalp_ : this->B_currentLocalp_;
 

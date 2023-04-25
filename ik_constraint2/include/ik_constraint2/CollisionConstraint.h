@@ -62,6 +62,7 @@ namespace ik_constraint2{
     double ignoreDistance_ = 0.1;
 
     cnoid::SgLineSetPtr lines_;
+    std::vector<cnoid::SgNodePtr> dummyDrawOnObjects_;
 
     cnoid::Vector3 A_currentLocalp_ = cnoid::Vector3::Zero();
     cnoid::Vector3 B_currentLocalp_ = cnoid::Vector3::Zero();
