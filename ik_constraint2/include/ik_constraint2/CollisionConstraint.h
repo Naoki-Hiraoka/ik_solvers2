@@ -13,6 +13,7 @@ namespace ik_constraint2{
     //  maxError: エラーの頭打ち
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
     //  velocityDamper: 不等式制約の差分をこの値分の1にする. maxErrorの適用前に適用する.
+    //  ignoreDistance: この距離以上離れている場合、制約をフリーにすることで、最適化計算を高速化する. (シュミットトリガー方式の方が行列の形状が変わりにくいのでSQPが利用できていいかも)
     //状態が更新される度に, 手動でcalcForwardKinematics()を呼ぶ必要が有る.
 
     const cnoid::LinkPtr& A_link() const { return A_link_;}
@@ -29,6 +30,8 @@ namespace ik_constraint2{
     double& weight() { return weight_;}
     const double& velocityDamper() const { return velocityDamper_;}
     double& velocityDamper() { return velocityDamper_;}
+    const double& ignoreDistance() const { return ignoreDistance_;}
+    double& ignoreDistance() { return ignoreDistance_;}
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () override;
@@ -56,6 +59,7 @@ namespace ik_constraint2{
     double precision_ = 1e-3;
     double weight_ = 1.0;
     double velocityDamper_ = 1.0;
+    double ignoreDistance_ = 0.1;
 
     cnoid::SgLineSetPtr lines_;
 
@@ -68,12 +72,12 @@ namespace ik_constraint2{
     std::vector<cnoid::LinkPtr> path_B_joints_;
     std::vector<cnoid::LinkPtr> path_BA_joints_;
     int path_BA_joints_numUpwardConnections_ = 0;
-    cnoid::LinkPtr jacobianineq_A_link_ = nullptr;// 前回のjacobian計算時のA_link
-    cnoid::LinkPtr jacobianineq_B_link_ = nullptr;// 前回のjacobian計算時のB_link
+    cnoid::LinkPtr jacobianineq_full_A_link_ = nullptr;// 前回のjacobian計算時のA_link
+    cnoid::LinkPtr jacobianineq_full_B_link_ = nullptr;// 前回のjacobian計算時のB_link
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianineq_full_;
 
-    std::vector<cnoid::LinkPtr> jacobianineq_joints_; // 前回のjacobianineq計算時のjoints
-    std::unordered_map<cnoid::LinkPtr,int> jacobianineqColMap_;
+    std::vector<cnoid::LinkPtr> jacobianineq_full_joints_; // 前回のjacobianineq計算時のjoints
+    std::unordered_map<cnoid::LinkPtr,int> jacobianineq_fullColMap_;
 
   };
 

@@ -12,16 +12,22 @@ namespace ik_constraint2{
     }
 
     // minIneq/maxIneqの計算
-    if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
-    if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
 
     if(!this->computeDistance(this->A_link_, this->B_link_,
                               this->currentDistance_, this->currentDirection_, this->A_currentLocalp_,this->B_currentLocalp_)){
-      this->minIneq_[0] = -1e10;
-      this->maxIneq_[0] = 1e10;
+      this->currentDistance_ = this->ignoreDistance_;
+      this->minIneq_.resize(0);
+      this->maxIneq_.resize(0);
     }else{
-      this->minIneq_[0] = std::min((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, this->maxError_) * this->weight_;
-      this->maxIneq_[0] = 1e10;
+      if(this->currentDistance_ < this->ignoreDistance_){
+        if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
+        if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
+        this->minIneq_[0] = std::min((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, this->maxError_) * this->weight_;
+        this->maxIneq_[0] = 1e10;
+      }else{
+        this->minIneq_.resize(0);
+        this->maxIneq_.resize(0);
+      }
     }
 
     if(this->debugLevel_>=1){
@@ -37,20 +43,21 @@ namespace ik_constraint2{
   }
 
   void CollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+
     // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
-    if(!IKConstraint::isJointsSame(joints,this->jacobianineq_joints_)
-       || this->A_link_ != this->jacobianineq_A_link_
-       || this->B_link_ != this->jacobianineq_B_link_){
-      this->jacobianineq_joints_ = joints;
-      this->jacobianineq_A_link_ = this->A_link_;
-      this->jacobianineq_B_link_ = this->B_link_;
+    if(!IKConstraint::isJointsSame(joints,this->jacobianineq_full_joints_)
+       || this->A_link_ != this->jacobianineq_full_A_link_
+       || this->B_link_ != this->jacobianineq_full_B_link_){
+      this->jacobianineq_full_joints_ = joints;
+      this->jacobianineq_full_A_link_ = this->A_link_;
+      this->jacobianineq_full_B_link_ = this->B_link_;
 
-      ik_constraint2::calc6DofJacobianShape(this->jacobianineq_joints_,//input
-                                this->jacobianineq_A_link_,//input
-                                this->jacobianineq_B_link_,//input
+      ik_constraint2::calc6DofJacobianShape(this->jacobianineq_full_joints_,//input
+                                this->jacobianineq_full_A_link_,//input
+                                this->jacobianineq_full_B_link_,//input
                                 this->jacobianineq_full_,
-                                this->jacobianineqColMap_,
+                                this->jacobianineq_fullColMap_,
                                 this->path_A_joints_,
                                 this->path_B_joints_,
                                 this->path_BA_joints_,
@@ -58,27 +65,35 @@ namespace ik_constraint2{
                                 );
     }
 
-    cnoid::Position A_localpos = cnoid::Position::Identity();
-    A_localpos.translation() = this->A_currentLocalp_;
-    cnoid::Position B_localpos = cnoid::Position::Identity();
-    B_localpos.translation() = this->B_currentLocalp_;
-    ik_constraint2::calc6DofJacobianCoef(this->jacobianineq_joints_,//input
-                             this->jacobianineq_A_link_,//input
-                             A_localpos,//input
-                             this->jacobianineq_B_link_,//input
-                             B_localpos,//input
-                             this->jacobianineqColMap_,//input
-                             this->path_A_joints_,//input
-                             this->path_B_joints_,//input
-                             this->path_BA_joints_,//input
-                             this->path_BA_joints_numUpwardConnections_,//input
-                             this->jacobianineq_full_
-                             );
+    if(this->currentDistance_ >= this->ignoreDistance_){
+      // this->jacobian_, this->jacobianIneq_のサイズだけそろえる
+      this->jacobian_.resize(0,this->jacobianineq_full_.cols());
+      this->jacobianIneq_.resize(0,this->jacobianineq_full_.cols());
+    }else{
+      cnoid::Position A_localpos = cnoid::Position::Identity();
+      A_localpos.translation() = this->A_currentLocalp_;
+      cnoid::Position B_localpos = cnoid::Position::Identity();
+      B_localpos.translation() = this->B_currentLocalp_;
+      ik_constraint2::calc6DofJacobianCoef(this->jacobianineq_full_joints_,//input
+                                           this->jacobianineq_full_A_link_,//input
+                                           A_localpos,//input
+                                           this->jacobianineq_full_B_link_,//input
+                                           B_localpos,//input
+                                           this->jacobianineq_fullColMap_,//input
+                                           this->path_A_joints_,//input
+                                           this->path_B_joints_,//input
+                                           this->path_BA_joints_,//input
+                                           this->path_BA_joints_numUpwardConnections_,//input
+                                           this->jacobianineq_full_
+                                           );
 
-    Eigen::SparseMatrix<double,Eigen::RowMajor> dir(3,1);
-    for(int i=0;i<3;i++) dir.insert(i,0) = this->currentDirection_[i];
-    this->jacobianIneq_ = dir.transpose() * this->jacobianineq_full_.topRows<3>() * this->weight_;
+      Eigen::SparseMatrix<double,Eigen::RowMajor> dir(3,1);
+      for(int i=0;i<3;i++) dir.insert(i,0) = this->currentDirection_[i];
+      this->jacobianIneq_ = dir.transpose() * this->jacobianineq_full_.topRows<3>() * this->weight_;
 
+      // this->jacobian_のサイズだけそろえる
+      this->jacobian_.resize(0,this->jacobianIneq_.cols());
+    }
 
     if(this->debugLevel_>=1){
       std::cerr << "CollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
