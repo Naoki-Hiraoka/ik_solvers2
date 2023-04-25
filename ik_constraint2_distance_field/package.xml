@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>moveit_ros</depend>
+  <depend>moveit_core</depend>
   <depend>octomap_ros</depend>
   <depend>choreonoid</depend>
   <depend>ik_constraint2</depend>
