@@ -42,7 +42,7 @@ namespace ik_constraint2_distance_field{
     return model;
   }
 
-  inline std::vector<cnoid::Vector3f> getVertex(cnoid::LinkPtr link, double resolution){
+  std::vector<cnoid::Vector3f> getSurfaceVertices(cnoid::LinkPtr link, double resolution){
     // 1つのvertexを取得したら、resolutionのサイズの同じ立方体の中にある他のvertexは取得しない
     // faceが巨大な場合、faceの内部の点をresolutionの間隔でサンプリングして取得する
 
@@ -114,7 +114,7 @@ namespace ik_constraint2_distance_field{
     Eigen::Affine3f fieldOriginInv = fieldOrigin.inverse().cast<float>();
 
     if(A_link && A_link != this->A_link_vertices_){
-      this->A_vertices_ = getVertex(A_link, this->resolution_);
+      this->A_vertices_ = getSurfaceVertices(A_link, this->resolution_);
       this->A_link_vertices_ = A_link;
     }
 

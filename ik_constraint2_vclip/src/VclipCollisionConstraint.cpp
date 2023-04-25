@@ -4,7 +4,10 @@
 
 namespace ik_constraint2_vclip{
   bool VclipCollisionConstraint::computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) {
-    assert(A_link && B_link); // temporary
+    if(A_link == nullptr ||
+       B_link == nullptr){
+      std::cerr << "[VclipCollisionConstraint::computeDistance] assertion failed" << std::endl;
+    }
 
     if(A_link && A_link != this->A_link_vclipModel_){
       this->A_vclipModel_ = choreonoid_vclip::convertToVClipModel(A_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない

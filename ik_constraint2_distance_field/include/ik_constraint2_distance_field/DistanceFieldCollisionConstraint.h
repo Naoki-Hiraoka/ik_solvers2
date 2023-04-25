@@ -79,6 +79,9 @@ namespace ik_constraint2_distance_field{
     double prev_dist_ = 0.0;
 
   };
+
+  // link local frame
+  std::vector<cnoid::Vector3f> getSurfaceVertices(cnoid::LinkPtr link, double resolution = 0.01);
 }
 
 #endif
