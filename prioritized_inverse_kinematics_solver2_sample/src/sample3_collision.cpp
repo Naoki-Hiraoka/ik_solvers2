@@ -82,7 +82,6 @@ namespace prioritized_inverse_kinematics_solver2_sample{
     }
     {
       // task: env collision
-      std::cerr << "A" << std::endl;
       std::shared_ptr<distance_field::PropagationDistanceField> field = std::make_shared<distance_field::PropagationDistanceField>(3,//size_x
                                                                                                                                    3,//size_y
                                                                                                                                    3,//size_z
@@ -93,7 +92,6 @@ namespace prioritized_inverse_kinematics_solver2_sample{
                                                                                                                                    0.5, // max_distance
                                                                                                                                    false// propagate_negative_distances
                                                                                                                                    );
-      std::cerr << "B" << std::endl;
       EigenSTL::vector_Vector3d vertices;
       for(int i=0;i<desk->numLinks();i++){
         std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(desk->link(i), 0.01);
@@ -101,9 +99,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
           vertices.push_back(desk->link(i)->T() * vertices_[j].cast<double>());
         }
       }
-      std::cerr << "C" << std::endl;
       field->addPointsToField(vertices);
-      std::cerr << "D" << std::endl;
       for(int i=0;i<robot->numLinks();i++){
         std::shared_ptr<ik_constraint2_distance_field::DistanceFieldCollisionConstraint> constraint = std::make_shared<ik_constraint2_distance_field::DistanceFieldCollisionConstraint>();
         constraint->A_link() = robot->link(i);
@@ -111,7 +107,6 @@ namespace prioritized_inverse_kinematics_solver2_sample{
         constraint->tolerance() = 0.03;
         constraints0.push_back(constraint);
       }
-      std::cerr << "E" << std::endl;
     }
 
 
