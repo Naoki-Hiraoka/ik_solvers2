@@ -38,7 +38,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
     robot->calcForwardKinematics();
     robot->calcCenterOfMass();
 
-    desk->rootLink()->p() = cnoid::Vector3(0.9,0.0,0.5);
+    desk->rootLink()->p() = cnoid::Vector3(0.75,0.0,0.5);
     desk->calcForwardKinematics();
     desk->calcCenterOfMass();
 
@@ -94,7 +94,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
                                                                                                                                    );
       EigenSTL::vector_Vector3d vertices;
       for(int i=0;i<desk->numLinks();i++){
-        std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(desk->link(i), 0.01);
+        std::vector<Eigen::Vector3f> vertices_ = ik_constraint2_distance_field::getSurfaceVertices(desk->link(i), 0.02);
         for(int j=0;j<vertices_.size();j++){
           vertices.push_back(desk->link(i)->T() * vertices_[j].cast<double>());
         }
