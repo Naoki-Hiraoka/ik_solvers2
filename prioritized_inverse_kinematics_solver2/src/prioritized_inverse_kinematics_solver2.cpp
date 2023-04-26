@@ -226,11 +226,18 @@ namespace prioritized_inverse_kinematics_solver2 {
       updateConstraints(variables, ikc_list);
       if(loop >= param.minIteration){
         if (checkConstraintsSatisfied(ikc_list)) {
+          if(param.debugLevel > 0) {
+            std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << std::endl;
+          }
+          if(path != nullptr) {
+            path->resize(path->size() + 1);
+            link2Frame(variables, path->back());
+          }
           return true;
         }
       }
       bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
-      if(path != nullptr) {
+      if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
         path->resize(path->size() + 1);
         link2Frame(variables, path->back());
       }
@@ -258,6 +265,10 @@ namespace prioritized_inverse_kinematics_solver2 {
 
     if(param.debugLevel > 0) {
       std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << std::endl;
+    }
+    if(path != nullptr) {
+      path->resize(path->size() + 1);
+      link2Frame(variables, path->back());
     }
 
     if(param.checkFinalState){
