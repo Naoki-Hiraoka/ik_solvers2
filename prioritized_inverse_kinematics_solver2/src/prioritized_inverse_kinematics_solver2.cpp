@@ -104,7 +104,7 @@ namespace prioritized_inverse_kinematics_solver2 {
         for(int j=0;j<dim;j++) prevTasks[i]->w()[j] *= param.dqWeight[j];
       }
 
-      if(param.debugLevel>0) prevTasks[i]->name() = std::string("Task") + std::to_string(i);
+      if(param.debugLevel>1) prevTasks[i]->name() = std::string("Task") + std::to_string(i);
     }
 
     // solve
@@ -146,7 +146,7 @@ namespace prioritized_inverse_kinematics_solver2 {
 
     if(param.debugLevel>0) {
       double time = timer.measure();
-      std::cerr << "[PrioritizedIK] solveIKOnce time: " << time << "[s]" << std::endl;
+      std::cerr << "[PrioritizedIK] solveIKOnce time: " << time << "[s]. norm: " << result.norm() << std::endl;
     }
 
     return result.norm() < param.convergeThre;
@@ -202,7 +202,8 @@ namespace prioritized_inverse_kinematics_solver2 {
       link2Frame(variables, path->at(0));
     }
 
-    for(int loop=0; loop < param.maxIteration; loop++) {
+    int loop;
+    for(loop=0; loop < param.maxIteration; loop++) {
       if(param.calcVelocity){
         for(size_t i=0;i<variables.size();i++){
           if(variables[i]->isFreeJoint()) {
@@ -253,6 +254,10 @@ namespace prioritized_inverse_kinematics_solver2 {
     for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
       (*it)->calcForwardKinematics(param.calcVelocity);
       (*it)->calcCenterOfMass();
+    }
+
+    if(param.debugLevel > 0) {
+      std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << std::endl;
     }
 
     if(param.checkFinalState){

@@ -25,7 +25,8 @@ namespace prioritized_inverse_kinematics_solver2 {
     std::vector<double> weVec; // weVec.size() == ikc_list.size()の場合、weの代わりにこっちを使う
     double wmax = 1e-1;
     std::vector<double> wmaxVec; // wmaxVec.size() == ikc_list.size()の場合、wmaxの代わりにこっちを使う
-    int debugLevel = 0;
+    int debugLevel = 0; // 0: no debug message. 1: time measure. 2: internal state
+
     double dt = 0.1;
     bool calcVelocity = true; // dtを用いて速度の計算をするかどうか. 速度を利用するconstraintがあるなら必須. ないなら、falseにすると高速化が見込まれる
     bool checkFinalState = true; // maxIteration番目またはconvergedのloop後に、各constraintを満たしているかどうかの判定を行うかどうか. 行わない場合、falseが返る.
@@ -42,7 +43,7 @@ namespace prioritized_inverse_kinematics_solver2 {
                         task = std::make_shared<prioritized_qp_osqp::Task>();
                         taskOSQP = std::dynamic_pointer_cast<prioritized_qp_osqp::Task>(task);
                       }
-                      taskOSQP->settings().verbose = debugLevel;
+                      taskOSQP->settings().verbose = (debugLevel > 1);
                       taskOSQP->settings().max_iter = 4000;
                       taskOSQP->settings().eps_abs = 1e-3;// 大きい方が速いが，不正確. 1e-5はかなり小さい. 1e-4は普通
                       taskOSQP->settings().eps_rel = 1e-3;// 大きい方が速いが，不正確. 1e-5はかなり小さい. 1e-4は普通
