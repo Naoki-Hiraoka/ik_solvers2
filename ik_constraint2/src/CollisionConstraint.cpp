@@ -104,7 +104,7 @@ namespace ik_constraint2{
   }
 
   double CollisionConstraint::distance() const{
-    return std::abs(std::max(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
+    return std::abs(std::min(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
   }
 
   std::vector<cnoid::SgNodePtr>& CollisionConstraint::getDrawOnObjects(){
