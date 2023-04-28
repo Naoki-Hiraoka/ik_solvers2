@@ -14,6 +14,7 @@ namespace ik_constraint2_vclip{
     virtual std::shared_ptr<ik_constraint2::IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
     void copy(std::shared_ptr<VclipCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
+    // meshの点が少なく次元が縮退しているとqhullがエラーになるので、特にuseSingleMesh=falseのときは注意.
     bool& useSingleMesh() { return useSingleMesh_; }
     const bool& useSingleMesh() const { return useSingleMesh_; }
 
