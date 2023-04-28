@@ -14,6 +14,9 @@ namespace ik_constraint2_vclip{
     virtual std::shared_ptr<ik_constraint2::IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
     void copy(std::shared_ptr<VclipCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
+    bool& useSingleMesh() { return useSingleMesh_; }
+    const bool& useSingleMesh() const { return useSingleMesh_; }
+
     // ユーザーは使わない. copy()の中で使われる
     cnoid::LinkPtr& A_link_vclipModel() { return A_link_vclipModel_; }
     const cnoid::LinkPtr& A_link_vclipModel() const { return A_link_vclipModel_; }
@@ -23,9 +26,11 @@ namespace ik_constraint2_vclip{
     //A_v, B_vはlocal系
     virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) override;
 
-    std::shared_ptr<Vclip::Polyhedron> A_vclipModel_;
+    bool useSingleMesh_ = true;
+
+    std::vector<std::shared_ptr<Vclip::Polyhedron> > A_vclipModel_;
     cnoid::LinkPtr A_link_vclipModel_; // A_vclipModel_のA_link
-    std::shared_ptr<Vclip::Polyhedron> B_vclipModel_;
+    std::vector<std::shared_ptr<Vclip::Polyhedron> > B_vclipModel_;
     cnoid::LinkPtr B_link_vclipModel_; // B_vclipModel_のB_link
 
     cnoid::Vector3 prev_A_localp_ = cnoid::Vector3::Zero();
