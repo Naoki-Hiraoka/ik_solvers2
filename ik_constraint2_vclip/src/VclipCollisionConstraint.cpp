@@ -47,17 +47,18 @@ namespace ik_constraint2_vclip{
       A_v = A_localp;
       B_v = B_localp;
 
-      this->prev_dist_ = dist;
-      this->prev_direction_ = direction;
-      this->prev_A_localp_ = A_localp;
-      this->prev_B_localp_ = B_localp;
     }else{
       // 干渉時は近傍点が正しくない場合があるので、干渉直前の値を使う
-      distance = this->prev_dist_;
+      distance = std::min(1e-6, ((A_link->T() * this->prev_A_localp_) - (B_link->T() * this->prev_B_localp_)).dot(this->prev_direction_));
       direction = this->prev_direction_;
       A_v = this->prev_A_localp_;
       B_v = this->prev_B_localp_;
     }
+
+    this->prev_dist_ = dist;
+    this->prev_direction_ = direction;
+    this->prev_A_localp_ = A_v;
+    this->prev_B_localp_ = B_v;
 
     return true;
   }

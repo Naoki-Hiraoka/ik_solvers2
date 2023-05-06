@@ -178,7 +178,7 @@ namespace ik_constraint2_distance_field{
       direction = this->prev_direction_;
       A_v = this->prev_A_localp_;
       B_v = this->prev_B_localp_;
-      distance = ((A_link->T() * this->prev_A_localp_) - this->prev_B_localp_).dot(this->prev_direction_);
+      distance = std::min(field->getResolution(), ((A_link->T() * this->prev_A_localp_) - this->prev_B_localp_).dot(this->prev_direction_));
     }else{
       cnoid::Vector3 closest_point = fieldOrigin * closest_point_fieldLocal;
       cnoid::Vector3 closest_direction = fieldOrigin.linear() * closest_direction_fieldLocal;
