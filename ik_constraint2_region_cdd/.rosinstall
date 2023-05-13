@@ -1,0 +1,7 @@
+- git:
+    local-name: choreonoid
+    uri: https://github.com/choreonoid/choreonoid.git
+    version: release-1.7
+- git:
+    local-name: cddeigen
+    uri: https://github.com/Naoki-Hiraoka/cddeigen.git

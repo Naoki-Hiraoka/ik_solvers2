@@ -12,3 +12,8 @@
 - git:
     local-name: choreonoid_collision_tools
     uri: https://github.com/Naoki-Hiraoka/choreonoid_collision_tools.git
+
+# for region cdd
+- git:
+    local-name: cddeigen
+    uri: https://github.com/Naoki-Hiraoka/cddeigen.git
