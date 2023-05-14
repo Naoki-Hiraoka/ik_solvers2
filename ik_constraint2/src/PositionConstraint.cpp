@@ -68,7 +68,7 @@ namespace ik_constraint2{
     this->current_error_eval_ = error_eval;
 
     if(this->debugLevel_>=1){
-      std::cerr << "PositionConstraint" << std::endl;
+      std::cerr << "PositionConstraint " << (this->A_link_?this->A_link_->name():std::string("world")) << " : " << (this->B_link_?this->B_link_->name():std::string("world")) << std::endl;
       std::cerr << "A_pos" << std::endl;
       std::cerr << A_pos.translation().transpose() << std::endl;
       std::cerr << A_pos.linear() << std::endl;
