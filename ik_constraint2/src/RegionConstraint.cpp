@@ -15,7 +15,7 @@ namespace ik_constraint2{
     cnoid::Vector3 rot_error = cnoid::Vector3::Zero();
     // 1軸がフリーの場合は、軸と軸がなす角度を見る
     if((this->weightR_.array() > 0.0).count() == 2 &&
-       ((this->eval_link_ == this->A_link_) || (this->eval_link_ == this->B_link_)) ) {
+       ((this->eval_link_ == this->A_link_ && this->A_localpos_.linear() == this->eval_localR_) || (this->eval_link_ == this->B_link_ && this->B_localpos_.linear() == this->eval_localR_)) ) {
       cnoid::Vector3 axis; // evalR local
       if(this->weightR_[0] == 0.0) axis = cnoid::Vector3::UnitX();
       else if(this->weightR_[1] == 0.0) axis = cnoid::Vector3::UnitY();
