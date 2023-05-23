@@ -17,8 +17,13 @@ namespace ik_constraint2{
       if(this->currentDistance_ < this->ignoreDistance_){
         if(this->minIneq_.rows()!=1) this->minIneq_ = Eigen::VectorXd::Zero(1);
         if(this->maxIneq_.rows()!=1) this->maxIneq_ = Eigen::VectorXd::Zero(1);
-        this->minIneq_[0] = std::min((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, this->maxError_) * this->weight_;
-        this->maxIneq_[0] = 1e10;
+        if(!this->invert_){
+          this->minIneq_[0] = std::min((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, this->maxError_) * this->weight_;
+          this->maxIneq_[0] = 1e10;
+        }else{
+          this->minIneq_[0] = -1e10;
+          this->maxIneq_[0] = std::max((this->tolerance_ - this->currentDistance_) / this->velocityDamper_, -this->maxError_) * this->weight_;
+        }
       }else{
         this->minIneq_.resize(0);
         this->maxIneq_.resize(0);
@@ -100,11 +105,27 @@ namespace ik_constraint2{
   }
 
   bool CollisionConstraint::isSatisfied() const{
-    return this->currentDistance_-this->tolerance_ > -this->precision_;
+    if(!this->invert_){
+      return this->currentDistance_-this->tolerance_ > -this->precision_;
+    }else{
+      return this->currentDistance_-this->tolerance_ < this->precision_;
+    }
   }
 
   double CollisionConstraint::distance() const{
-    return std::abs(std::min(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
+    if(!this->invert_){
+      return std::abs(std::min(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
+    }else{
+      return std::abs(std::max(this->currentDistance_-this->tolerance_, 0.0)) * this->weight_;
+    }
+  }
+
+  double CollisionConstraint::margin() const{
+    if(!this->invert_){
+      return (this->currentDistance_-this->tolerance_) * this->weight_;
+    }else{
+      return - (this->currentDistance_-this->tolerance_) * this->weight_;
+    }
   }
 
   std::vector<cnoid::SgNodePtr>& CollisionConstraint::getDrawOnObjects(){

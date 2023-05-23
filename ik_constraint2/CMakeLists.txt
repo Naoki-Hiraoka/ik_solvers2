@@ -34,6 +34,8 @@ endforeach(lib)
 
 add_library(${PROJECT_NAME}
   src/Jacobian.cpp
+  src/ORConstraint.cpp
+  src/ANDConstraint.cpp
   src/PositionConstraint.cpp
   src/RegionConstraint.cpp
   src/COMConstraint.cpp

@@ -14,6 +14,7 @@ namespace ik_constraint2{
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
     //  velocityDamper: 不等式制約の差分をこの値分の1にする. maxErrorの適用前に適用する.
     //  ignoreDistance: この距離以上離れている場合、制約をフリーにすることで、最適化計算を高速化する. (シュミットトリガー方式の方が行列の形状が変わりにくいのでSQPが利用できていいかも)
+    //  invert: 干渉しないようにするのではなく、干渉するように制約を加える
     //状態が更新される度に, 手動でcalcForwardKinematics()を呼ぶ必要が有る.
 
     const cnoid::LinkPtr& A_link() const { return A_link_;}
@@ -32,6 +33,8 @@ namespace ik_constraint2{
     double& velocityDamper() { return velocityDamper_;}
     const double& ignoreDistance() const { return ignoreDistance_;}
     double& ignoreDistance() { return ignoreDistance_;}
+    bool& invert() { return invert_; }
+    const bool& invert() const { return invert_; }
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () override;
@@ -41,6 +44,8 @@ namespace ik_constraint2{
     virtual bool isSatisfied () const override;
     // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
     virtual double distance() const override;
+    // 制約を満たさなくなるまでの最短距離. 現在満たしていない場合は-distanceと同じ. getEqなどは、エラーの頭打ちを行うが、marginは行わないので、より純粋な距離を表す.
+    virtual double margin() const override;
 
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
@@ -60,6 +65,7 @@ namespace ik_constraint2{
     double weight_ = 1.0;
     double velocityDamper_ = 1.0;
     double ignoreDistance_ = 0.1;
+    bool invert_ = false;
 
     cnoid::SgLineSetPtr lines_;
     std::vector<cnoid::SgNodePtr> dummyDrawOnObjects_;

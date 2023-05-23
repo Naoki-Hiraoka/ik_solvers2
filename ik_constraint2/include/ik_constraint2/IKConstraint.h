@@ -11,7 +11,7 @@ namespace ik_constraint2{
   {
   public:
 
-    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> updateBounds() -> (isSatisfied / getEq / getMin/MaxIneq / distance / getDrawOnObjects) -> updateJacobian() -> getJacobian / getJacobianIneq の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
+    // 必ず,状態更新(qとdqとrootLinkのT,v,w) -> ForwardKinematics(true) -> calcCenterOfMass() -> updateBounds() -> (isSatisfied / getEq / getMin/MaxIneq / distance / margin / getDrawOnObjects) -> updateJacobian() -> getJacobian / getJacobianIneq の順で呼ぶので、同じ処理を何度も行うのではなく最初に呼ばれる関数で1回だけ行って以降はキャッシュを使ってよい
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () = 0;
@@ -21,6 +21,8 @@ namespace ik_constraint2{
     virtual bool isSatisfied () const {return this->distance() == 0.0;}
     // 達成までの距離. getEqなどは、エラーの頭打ちを行うが、distanceは行わないので、より純粋なisSatisfiedまでの距離を表す.
     virtual double distance() const { return std::sqrt(this->eq_.squaredNorm() + this->minIneq_.cwiseMax(Eigen::VectorXd::Zero(this->minIneq_.size())).squaredNorm() + this->maxIneq_.cwiseMin(Eigen::VectorXd::Zero(this->maxIneq_.size())).squaredNorm()); }
+    // 制約を満たさなくなるまでの最短距離. 現在満たしていない場合は-distanceと同じ. getEqなどは、エラーの頭打ちを行うが、marginは行わないので、より純粋な距離を表す.
+    virtual double margin() const { return this->isSatisfied() ? (this->eq_.size()>0 ? 0 : std::min(std::abs(this->minIneq_.maxCoeff()), std::abs(this->maxIneq_.minCoeff())) ) : -this->distance(); }
     // for debug view
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() {return this->drawOnObjects_;}
     // 等式制約のエラーを返す.  // getEq = getJacobian * dq となるようなdqを探索する
