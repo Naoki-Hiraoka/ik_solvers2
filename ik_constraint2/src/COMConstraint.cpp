@@ -31,8 +31,8 @@ namespace ik_constraint2{
       this->du_.resize(0);
       this->dl_.resize(0);
     }
-    if(this->C_.rows() != this->maxCError_.size() ){
-      this->maxCError_ = cnoid::VectorX::Ones(this->C_.rows()) * 0.1;
+    if(this->C_.rows() != this->maxCErrorVec_.size() ){
+      this->maxCErrorVec_ = cnoid::VectorX::Ones(this->C_.rows()) * this->maxCError_;
     }
     if(this->minIneq_.rows() != this->C_.rows()) this->minIneq_ = Eigen::VectorXd(this->C_.rows());
     if(this->maxIneq_.rows() != this->C_.rows()) this->maxIneq_ = Eigen::VectorXd(this->C_.rows());
@@ -40,8 +40,8 @@ namespace ik_constraint2{
     cnoid::VectorX u = this->du_ - Ce;
     cnoid::VectorX l = this->dl_ - Ce;
     for(size_t i=0; i<u.size(); i++){
-      this->maxIneq_[i] = std::max(u[i],-this->maxCError_[i]);
-      this->minIneq_[i] = std::min(l[i],this->maxCError_[i]);
+      this->maxIneq_[i] = std::max(u[i],-this->maxCErrorVec_[i]);
+      this->minIneq_[i] = std::min(l[i],this->maxCErrorVec_[i]);
     }
 
     // distance計算用

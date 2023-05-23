@@ -45,8 +45,10 @@ namespace ik_constraint2{
     cnoid::VectorX& dl() { return dl_;}
     const cnoid::VectorX& du() const { return du_;}
     cnoid::VectorX& du() { return du_;}
-    const cnoid::VectorX& maxCError() const { return maxCError_;}
-    cnoid::VectorX& maxCError() { return maxCError_;}
+    const cnoid::VectorX& maxCErrorVec() const { return maxCErrorVec_;}
+    cnoid::VectorX& maxCErrorVec() { return maxCErrorVec_;}
+    const double& maxCError() const { return maxCError_;}
+    double& maxCError() { return maxCError_;}
     const double& CPrecision() const { return CPrecision_;}
     double& CPrecision() { return CPrecision_;}
 
@@ -78,7 +80,8 @@ namespace ik_constraint2{
     Eigen::SparseMatrix<double,Eigen::RowMajor> C_{0,3};
     cnoid::VectorX dl_;
     cnoid::VectorX du_;
-    cnoid::VectorX maxCError_;
+    cnoid::VectorX maxCErrorVec_;
+    double maxCError_ = 0.05;
     double CPrecision_ = 1e-3;
 
     cnoid::SgLineSetPtr lines_;
