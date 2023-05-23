@@ -4,6 +4,15 @@
 #include <choreonoid_viewer/choreonoid_viewer.h>
 
 namespace prioritized_inverse_kinematics_solver2_sample{
+  void sample0_1_bullet();
+  class sample0_1_bulletItem : public choreonoid_viewer::ViewerBaseItem {
+  public:
+    static void initializeClass(cnoid::ExtensionManager* ext){ ext->itemManager().registerClass<sample0_1_bulletItem>("sample0_1_bulletItem"); }
+  protected:
+    virtual void main() override{ sample0_1_bullet(); return; }
+  };
+  typedef cnoid::ref_ptr<sample0_1_bulletItem> sample0_1_bulletItemPtr;
+
   void sample1_4limb();
   class sample1_4limbItem : public choreonoid_viewer::ViewerBaseItem {
   public:
@@ -51,6 +60,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
     }
     virtual bool initialize() override
     {
+      sample0_1_bulletItem::initializeClass(this);
       sample1_4limbItem::initializeClass(this);
       sample2_collisionItem::initializeClass(this);
       sample3_collisionItem::initializeClass(this);

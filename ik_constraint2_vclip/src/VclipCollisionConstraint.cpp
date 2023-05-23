@@ -13,6 +13,7 @@ namespace ik_constraint2_vclip{
       if(this->useSingleMesh_) {
         std::shared_ptr<Vclip::Polyhedron> m = choreonoid_vclip::convertToVClipModel(A_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない
         if(m) this->A_vclipModel_ = std::vector<std::shared_ptr<Vclip::Polyhedron> >{m};
+        else this->A_vclipModel_.clear();
       }else{
         this->A_vclipModel_ = choreonoid_vclip::convertToVClipModels(A_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない
       }
@@ -22,6 +23,7 @@ namespace ik_constraint2_vclip{
       if(this->useSingleMesh_) {
         std::shared_ptr<Vclip::Polyhedron> m = choreonoid_vclip::convertToVClipModel(B_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない
         if(m) this->B_vclipModel_ = std::vector<std::shared_ptr<Vclip::Polyhedron> >{m};
+        else this->B_vclipModel_.clear();
       }else{
         this->B_vclipModel_ = choreonoid_vclip::convertToVClipModels(B_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない
       }
