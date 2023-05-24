@@ -3,6 +3,11 @@
 #include <cnoid/SceneDrawables>
 #include <cnoid/MeshExtractor>
 
+extern "C" {
+#include <libqhull_r/qhull_ra.h>
+}
+
+
 namespace ik_constraint2_distance_field{
   inline void addMesh(cnoid::SgMeshPtr model, std::shared_ptr<cnoid::MeshExtractor> meshExtractor){
     cnoid::SgMeshPtr mesh = meshExtractor->currentMesh();
@@ -211,6 +216,14 @@ namespace ik_constraint2_distance_field{
     for(int i=0;i<ret->ignoreBoundingBox().size();i++){
       if(ret->ignoreBoundingBox()[i].parentLink && modelMap.find(ret->ignoreBoundingBox()[i].parentLink->body()) != modelMap.end()) ret->ignoreBoundingBox()[i].parentLink = modelMap.find(ret->ignoreBoundingBox()[i].parentLink->body())->second->link(ret->ignoreBoundingBox()[i].parentLink->index());
     }
+  }
+
+  // qhull_rを使わないけど無理やりリンクするため
+  void DistanceFieldCollisionConstraint::dummy() {
+    qhT qh_qh;
+    qhT* qh = &qh_qh;
+    QHULL_LIB_CHECK
+    qh_zero(qh, stderr);
   }
 
 }

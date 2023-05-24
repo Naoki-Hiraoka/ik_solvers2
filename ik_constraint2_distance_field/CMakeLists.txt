@@ -39,6 +39,7 @@ add_library(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+  qhull_r # moveit_coreがqhullをリンクするので、他のライブラリがqhull_rを使う場合に衝突してうまく行かない場合がある. qhullの前にqhull_rをリンクすることで、回避する.
   ${catkin_LIBRARIES}
   ${CHOREONOID_BODY_LIBRARIES_ABS}
   )

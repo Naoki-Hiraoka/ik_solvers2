@@ -79,6 +79,8 @@ namespace ik_constraint2_distance_field{
     cnoid::Vector3 prev_direction_ = cnoid::Vector3::UnitX();
     double prev_dist_ = 0.0;
 
+  private:
+    void dummy();
   };
 
   // link local frame
