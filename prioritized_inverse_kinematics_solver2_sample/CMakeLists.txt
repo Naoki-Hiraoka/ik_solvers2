@@ -53,6 +53,7 @@ add_library(CnoidPrioritizedInverseKinematicsSolver2SamplePlugin SHARED
   src/sample2_collision.cpp
   src/sample3_collision.cpp
   src/sample4_region.cpp
+  src/sample5_or.cpp
 )
 target_link_libraries(CnoidPrioritizedInverseKinematicsSolver2SamplePlugin
   ${catkin_LIBRARIES}
