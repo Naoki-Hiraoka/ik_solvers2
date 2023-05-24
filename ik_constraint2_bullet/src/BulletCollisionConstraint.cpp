@@ -48,6 +48,7 @@ namespace ik_constraint2_bullet{
     // bulletは干渉している場合に正しいpenetrationを返す
     distance = dist;
     direction = (A_link->T()*A_localp - B_link->T()*B_localp).normalized();
+    if(distance < 0) direction *= -1; // 離れる方向が正
     A_v = A_localp;
     B_v = B_localp;
 
