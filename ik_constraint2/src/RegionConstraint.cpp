@@ -3,6 +3,22 @@
 #include <iostream>
 
 namespace ik_constraint2{
+  inline Eigen::Matrix3d orientCoordToAxis(const Eigen::Matrix3d& m, const Eigen::Vector3d& axis, const Eigen::Vector3d& localaxis){
+    // axisとlocalaxisはノルムが1, mは回転行列でなければならない.
+    // axisとlocalaxisがピッタリ180反対向きの場合、回転方向が定まらないので不安定
+    Eigen::AngleAxisd m_ = Eigen::AngleAxisd(m); // Eigen::Matrix3dの空間で積算していると数値誤差によってだんたん回転行列ではなくなってくるので
+    Eigen::Vector3d localaxisdir = m_ * localaxis;
+    Eigen::Vector3d cross = localaxisdir.cross(axis);
+    double dot = std::min(1.0,std::max(-1.0,localaxisdir.dot(axis))); // acosは定義域外のときnanを返す
+    if(cross.norm()==0){
+      if(dot == -1) return Eigen::Matrix3d(-m);
+      else return Eigen::Matrix3d(m_);
+    }else{
+      double angle = std::acos(dot); // 0~pi
+      Eigen::Vector3d axis = cross.normalized(); // include sign
+      return Eigen::Matrix3d(Eigen::AngleAxisd(angle, axis) * m_);
+    }
+  }
 
   void RegionConstraint::updateBounds () {
     const cnoid::Position& A_pos = (this->A_link_) ? this->A_link_->T() * this->A_localpos_ : this->A_localpos_;
@@ -13,9 +29,9 @@ namespace ik_constraint2{
     cnoid::Vector6 error; // world frame. A-B
     const cnoid::Vector3 pos_error = A_pos.translation() - B_pos.translation();
     cnoid::Vector3 rot_error = cnoid::Vector3::Zero();
-    // 1軸がフリーの場合は、軸と軸がなす角度を見る
     if((this->weightR_.array() > 0.0).count() == 2 &&
        ((this->eval_link_ == this->A_link_ && this->A_localpos_.linear() == this->eval_localR_) || (this->eval_link_ == this->B_link_ && this->B_localpos_.linear() == this->eval_localR_)) ) {
+      // 1軸がフリーの場合は、軸と軸がなす角度を見る
       cnoid::Vector3 axis; // evalR local
       if(this->weightR_[0] == 0.0) axis = cnoid::Vector3::UnitX();
       else if(this->weightR_[1] == 0.0) axis = cnoid::Vector3::UnitY();
@@ -46,6 +62,25 @@ namespace ik_constraint2{
         Eigen::Vector3d axis_ = cross.normalized(); // include sign
         rot_error = angle * axis_;
       }
+    }else if((this->weightR_.array() > 0.0).count() == 1 &&
+       ((this->eval_link_ == this->A_link_ && this->A_localpos_.linear() == this->eval_localR_) || (this->eval_link_ == this->B_link_ && this->B_localpos_.linear() == this->eval_localR_)) ) {
+      // 2軸がフリーの場合は、軸と軸がなす角度を0にしたときの残差を見る
+      cnoid::Vector3 axis; // evalR local
+      if(this->weightR_[3] > 0.0) axis = cnoid::Vector3::UnitX();
+      else if(this->weightR_[4] > 0.0) axis = cnoid::Vector3::UnitY();
+      else if(this->weightR_[5] > 0.0) axis = cnoid::Vector3::UnitZ();
+
+      cnoid::Matrix3 A_R;
+      cnoid::Matrix3 B_R;
+      if(this->eval_link_ == this->A_link_ && this->A_localpos_.linear() == this->eval_localR_){
+        A_R = A_pos.linear();
+        B_R = orientCoordToAxis(B_pos.linear(), A_pos.linear() * axis, axis);
+      }else{
+        A_R = orientCoordToAxis(A_pos.linear(), B_pos.linear() * axis, axis);
+        B_R = B_pos.linear();
+      }
+      const cnoid::AngleAxis angleAxis = cnoid::AngleAxis(A_R * B_R.transpose());
+      rot_error = angleAxis.angle()*angleAxis.axis();
     }else{
       const cnoid::AngleAxis angleAxis = cnoid::AngleAxis(A_pos.linear() * B_pos.linear().transpose());
       rot_error = angleAxis.angle()*angleAxis.axis();
