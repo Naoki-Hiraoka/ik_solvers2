@@ -53,7 +53,7 @@ namespace ik_constraint2{
     int num_eqs = 0;
     int num_ineqs = 0;
     for(int i=0;i<this->children_.size();i++) {
-      this->children_[i]->updateBounds();
+      this->children_[i]->updateJacobian(joints);
       jacobians.emplace_back(this->children_[i]->getJacobian());
       jacobianIneqs.emplace_back(this->children_[i]->getJacobianIneq());
 

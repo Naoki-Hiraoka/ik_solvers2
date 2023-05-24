@@ -36,9 +36,16 @@ namespace ik_constraint2{
   }
 
   void ORConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
-
-    this->jacobian_ = this->children_[this->activeIdx_]->getJacobian();
-    this->jacobianIneq_ = this->children_[this->activeIdx_]->getJacobianIneq();
+    if(this->activeIdx_ == -1){
+      double dim = 0;
+      for(size_t i=0;i<joints.size();i++) dim+=IKConstraint::getJointDOF(joints[i]);
+      this->jacobian_.resize(0,dim);
+      this->jacobianIneq_.resize(0,dim);
+    }else{
+      this->children_[this->activeIdx_]->updateJacobian(joints);
+      this->jacobian_ = this->children_[this->activeIdx_]->getJacobian();
+      this->jacobianIneq_ = this->children_[this->activeIdx_]->getJacobianIneq();
+    }
 
     if(this->debugLevel_>=2){
       std::cerr << "ORConstraint " << this->activeIdx_ << std::endl;

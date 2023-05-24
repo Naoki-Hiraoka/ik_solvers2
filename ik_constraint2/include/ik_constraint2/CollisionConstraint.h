@@ -14,7 +14,7 @@ namespace ik_constraint2{
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
     //  velocityDamper: 不等式制約の差分をこの値分の1にする. maxErrorの適用前に適用する.
     //  ignoreDistance: この距離以上離れている場合、制約をフリーにすることで、最適化計算を高速化する. (シュミットトリガー方式の方が行列の形状が変わりにくいのでSQPが利用できていいかも)
-    //  invert: 干渉しないようにするのではなく、干渉するように制約を加える
+    //  invert: 干渉しないようにするのではなく、干渉するように制約を加える. ignoreDistanceを大きくせよ
     //状態が更新される度に, 手動でcalcForwardKinematics()を呼ぶ必要が有る.
 
     const cnoid::LinkPtr& A_link() const { return A_link_;}
