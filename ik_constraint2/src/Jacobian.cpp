@@ -76,6 +76,65 @@ namespace ik_constraint2 {
     }
   }
 
+  // world座標系で見た、A のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
+  //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
+  void calc6DofJacobianShape(const std::vector<cnoid::LinkPtr>& joints, //input
+                             cnoid::LinkPtr& A_link, //input
+                             Eigen::SparseMatrix<double,Eigen::RowMajor>& jacobian, //output
+                             std::unordered_map<cnoid::LinkPtr,int>& jacobianColMap, //output
+                             std::vector<cnoid::LinkPtr>& path_A_joints //output
+                             ){
+    jacobianColMap.clear();
+    int num_variables = 0;
+    for(size_t i=0;i<joints.size();i++){
+      jacobianColMap[joints[i]] = num_variables;
+      num_variables += getJointDOF(joints[i]);
+    }
+
+    std::vector<Eigen::Triplet<double> > tripletList;
+
+    if(A_link){
+      tripletList.reserve(100);//適当
+
+      path_A_joints.clear();
+      cnoid::LinkPath path(A_link);
+      for(size_t j=0;j<path.size();j++){
+        path_A_joints.push_back(path[j]);
+      }
+
+      for(size_t j=0;j<path_A_joints.size();j++){
+        cnoid::LinkPtr joint = path_A_joints[j];
+        if(jacobianColMap.find(joint)==jacobianColMap.end()) continue;
+        int idx = jacobianColMap[joint];
+        pushBackTripletList(tripletList,joint,idx);
+      }
+    }
+
+    jacobian = Eigen::SparseMatrix<double,Eigen::RowMajor>(6,num_variables);
+    jacobian.setFromTriplets(tripletList.begin(), tripletList.end());
+  }
+
+  // world座標系で見た、A のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
+  //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
+  void calc6DofJacobianCoef(const std::vector<cnoid::LinkPtr>& joints, //input
+                            const cnoid::LinkPtr& A_link, //input
+                            const cnoid::Vector3& A_localpos, //input
+                            std::unordered_map<cnoid::LinkPtr,int>& jacobianColMap, //input
+                            const std::vector<cnoid::LinkPtr>& path_A_joints, //input
+                            Eigen::SparseMatrix<double,Eigen::RowMajor>& jacobian //output
+                            ){
+    if(A_link) {
+      const cnoid::Vector3 target_p = A_link->T() * A_localpos;
+
+      for(size_t j=0;j<path_A_joints.size();j++){
+        cnoid::LinkPtr joint = path_A_joints[j];
+        if(jacobianColMap.find(joint)==jacobianColMap.end()) continue;
+        int idx = jacobianColMap[joint];
+        fillJacobian(jacobian,target_p,joint,idx,1);
+      }
+    }
+  }
+
   // world座標系で見た、A - B のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
   //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
   void calc6DofJacobianShape(const std::vector<cnoid::LinkPtr>& joints, //input

@@ -9,6 +9,25 @@
 #include <Eigen/Sparse>
 
 namespace ik_constraint2 {
+  // world座標系で見た、A のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
+  //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
+  void calc6DofJacobianShape(const std::vector<cnoid::LinkPtr>& joints, //input
+                             cnoid::LinkPtr& A_link, //input
+                             Eigen::SparseMatrix<double,Eigen::RowMajor>& jacobian, //output
+                             std::unordered_map<cnoid::LinkPtr,int>& jacobianColMap, //output
+                             std::vector<cnoid::LinkPtr>& path_A_joints //output
+                             );
+  // world座標系で見た、A のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
+  //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
+  void calc6DofJacobianCoef(const std::vector<cnoid::LinkPtr>& joints, //input
+                            const cnoid::LinkPtr& A_link, //input
+                            const cnoid::Vector3& A_localpos, //input
+                            std::unordered_map<cnoid::LinkPtr,int>& jacobianColMap, //input
+                            const std::vector<cnoid::LinkPtr>& path_A_joints, //input
+                            Eigen::SparseMatrix<double,Eigen::RowMajor>& jacobian //output
+                            );
+
+
   // world座標系で見た、A - B のヤコビアン. linkがnullptrの場合、localposはworld座標を意味する.
   //   jacobianを新たにコンストラクトし、非ゼロ要素に1を入れる.
   void calc6DofJacobianShape(const std::vector<cnoid::LinkPtr>& joints, //input

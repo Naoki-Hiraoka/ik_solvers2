@@ -53,7 +53,7 @@ namespace ik_constraint2{
     void copy(std::shared_ptr<CollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
   protected:
-    //A_v, B_vはlocal系
+    //A_v, B_vはlocal系. directionは離れる方向が正
     virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v)=0;
 
   private:

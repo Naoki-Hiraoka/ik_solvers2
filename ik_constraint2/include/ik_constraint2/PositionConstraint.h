@@ -66,12 +66,15 @@ namespace ik_constraint2{
 
     std::vector<cnoid::LinkPtr> path_A_joints_;
     std::vector<cnoid::LinkPtr> path_B_joints_;
-    std::vector<cnoid::LinkPtr> path_BA_joints_;
+    std::vector<cnoid::LinkPtr> path_eval_joints_;
     int path_BA_joints_numUpwardConnections_;
-    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_full_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_A_full_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_B_full_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_eval_full_;
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_full_local_;
     cnoid::LinkPtr jacobian_A_link_ = nullptr;// 前回のjacobian計算時のA_link
     cnoid::LinkPtr jacobian_B_link_ = nullptr;// 前回のjacobian計算時のB_link
+    cnoid::LinkPtr jacobian_eval_link_ = nullptr;// 前回のjacobian計算時のeval_link
 
     std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のjacobian計算時のjoints
     std::unordered_map<cnoid::LinkPtr,int> jacobianColMap_;

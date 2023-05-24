@@ -125,42 +125,66 @@ namespace ik_constraint2{
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
     if(!IKConstraint::isJointsSame(joints,this->jacobian_joints_)
        || this->A_link_ != this->jacobian_A_link_
-       || this->B_link_ != this->jacobian_B_link_){
+       || this->B_link_ != this->jacobian_B_link_
+       || this->eval_link_ != this->jacobian_eval_link_){
       this->jacobian_joints_ = joints;
       this->jacobian_A_link_ = this->A_link_;
       this->jacobian_B_link_ = this->B_link_;
+      this->jacobian_eval_link_ = this->eval_link_;
 
       ik_constraint2::calc6DofJacobianShape(this->jacobian_joints_,//input
-                                this->jacobian_A_link_,//input
-                                this->jacobian_B_link_,//input
-                                this->jacobian_full_,
-                                this->jacobianColMap_,
-                                this->path_A_joints_,
-                                this->path_B_joints_,
-                                this->path_BA_joints_,
-                                this->path_BA_joints_numUpwardConnections_
-                                );
+                                            this->jacobian_A_link_,//input
+                                            this->jacobian_A_full_,
+                                            this->jacobianColMap_,
+                                            this->path_A_joints_
+                                            );
+      ik_constraint2::calc6DofJacobianShape(this->jacobian_joints_,//input
+                                            this->jacobian_B_link_,//input
+                                            this->jacobian_B_full_,
+                                            this->jacobianColMap_,
+                                            this->path_B_joints_
+                                            );
+      ik_constraint2::calc6DofJacobianShape(this->jacobian_joints_,//input
+                                            this->jacobian_eval_link_,//input
+                                            this->jacobian_eval_full_,
+                                            this->jacobianColMap_,
+                                            this->path_eval_joints_
+                                            );
     }
 
     ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
-                             this->jacobian_A_link_,//input
-                             this->A_localpos_,//input
-                             this->jacobian_B_link_,//input
-                             this->B_localpos_,//input
-                             this->jacobianColMap_,//input
-                             this->path_A_joints_,//input
-                             this->path_B_joints_,//input
-                             this->path_BA_joints_,//input
-                             this->path_BA_joints_numUpwardConnections_,//input
-                             this->jacobian_full_
-                             );
+                                         this->jacobian_A_link_,//input
+                                         this->A_localpos_.translation(),//input
+                                         this->jacobianColMap_,//input
+                                         this->path_A_joints_,//input
+                                         this->jacobian_A_full_
+                                         );
+    ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
+                                         this->jacobian_B_link_,//input
+                                         this->B_localpos_.translation(),//input
+                                         this->jacobianColMap_,//input
+                                         this->path_B_joints_,//input
+                                         this->jacobian_B_full_
+                                         );
+    ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
+                                         this->jacobian_eval_link_,//input
+                                         cnoid::Vector3::Zero(),//input
+                                         this->jacobianColMap_,//input
+                                         this->path_eval_joints_,//input
+                                         this->jacobian_eval_full_
+                                         );
 
     cnoid::Matrix3d eval_R = (this->eval_link_) ? this->eval_link_->R() * this->eval_localR_ : this->eval_localR_;
     Eigen::SparseMatrix<double,Eigen::RowMajor> eval_R_sparse(3,3);
     for(int i=0;i<3;i++) for(int j=0;j<3;j++) eval_R_sparse.insert(i,j) = eval_R(i,j);
-    this->jacobian_full_local_.resize(this->jacobian_full_.rows(), this->jacobian_full_.cols());
-    this->jacobian_full_local_.topRows<3>() = eval_R_sparse.transpose() * this->jacobian_full_.topRows<3>();
-    this->jacobian_full_local_.bottomRows<3>() = eval_R_sparse.transpose() * this->jacobian_full_.bottomRows<3>();
+    this->jacobian_full_local_.resize(6, this->jacobian_A_full_.cols());
+
+    this->jacobian_full_local_.topRows<3>() = eval_R_sparse.transpose() * this->jacobian_A_full_.topRows<3>();
+    this->jacobian_full_local_.bottomRows<3>() = eval_R_sparse.transpose() * this->jacobian_A_full_.bottomRows<3>();
+    this->jacobian_full_local_.topRows<3>() -= Eigen::SparseMatrix<double,Eigen::RowMajor>(eval_R_sparse.transpose() * this->jacobian_B_full_.topRows<3>());
+    this->jacobian_full_local_.bottomRows<3>() -= Eigen::SparseMatrix<double,Eigen::RowMajor>(eval_R_sparse.transpose() * this->jacobian_B_full_.bottomRows<3>());
+    this->jacobian_full_local_.topRows<3>() += IKConstraint::cross(this->current_error_eval_.head<3>()) * eval_R_sparse.transpose() * this->jacobian_eval_full_.topRows<3>();
+    this->jacobian_full_local_.bottomRows<3>() += IKConstraint::cross(this->current_error_eval_.tail<3>()) * eval_R_sparse.transpose() * this->jacobian_eval_full_.bottomRows<3>();
 
     this->jacobian_.resize((this->weight_.array() > 0.0).count(),this->jacobian_full_local_.cols());
     for(size_t i=0, idx=0;i<6;i++){
