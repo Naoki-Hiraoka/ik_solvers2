@@ -45,6 +45,7 @@ add_library(${PROJECT_NAME}
   src/JointVelocityConstraint.cpp
   src/CollisionConstraint.cpp
   src/ClientCollisionConstraint.cpp
+  src/KeepCollisionConstraint.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
