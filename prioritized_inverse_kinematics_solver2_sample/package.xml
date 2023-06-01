@@ -14,6 +14,7 @@
   <depend>ik_constraint2_bullet</depend>
   <depend>ik_constraint2_distance_field</depend>
   <depend>ik_constraint2_region_cdd</depend>
+  <depend>choreonoid_cddlib</depend>
   <depend>prioritized_inverse_kinematics_solver2</depend>
   <depend>choreonoid_viewer</depend>
 

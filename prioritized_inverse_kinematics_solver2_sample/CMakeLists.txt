@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   ik_constraint2_bullet
   ik_constraint2_distance_field
   ik_constraint2_region_cdd
+  choreonoid_cddlib
   prioritized_inverse_kinematics_solver2
   roslib
   choreonoid_viewer
@@ -55,6 +56,7 @@ add_library(CnoidPrioritizedInverseKinematicsSolver2SamplePlugin SHARED
   src/sample3_collision.cpp
   src/sample4_region.cpp
   src/sample5_or.cpp
+  src/sample6_keep.cpp
 )
 target_link_libraries(CnoidPrioritizedInverseKinematicsSolver2SamplePlugin
   ${catkin_LIBRARIES}

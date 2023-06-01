@@ -114,8 +114,8 @@ namespace ik_constraint2{
         return;
       }
       Eigen::VectorXd current = this->C_ * error_eval.head<3>();
-      this->minIneq_ = (this->dl_-current).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
-      this->maxIneq_ = (this->du_-current).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
+      this->minIneq_ = (this->dl_-current).array().min(this->maxError_) * this->weight_;
+      this->maxIneq_ = (this->du_-current).array().max(-this->maxError_) * this->weight_;
     }
 
     // distanceを計算する

@@ -32,19 +32,31 @@ namespace ik_constraint2{
 
         Eigen::VectorXd currentA = this->A_currentC_ * (this->A_link_->T().inverse() * this->currentp_);
         Eigen::VectorXd currentB = this->B_currentC_ * (this->B_link_->T().inverse() * this->currentp_);
-        this->minIneq_.head(this->A_currentC_.rows()) = (this->A_currentdl_ - currentA).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
-        this->maxIneq_.head(this->A_currentC_.rows()) = (this->A_currentdu_ - currentA).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
-        this->minIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdl_ - currentB).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
-        this->maxIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdu_ - currentA).array().max(-this->maxError_).min(this->maxError_) * this->weight_;
+        this->minIneq_.head(this->A_currentC_.rows()) = (this->A_currentdl_ - currentA).array().min(this->maxError_) * this->weight_;
+        this->maxIneq_.head(this->A_currentC_.rows()) = (this->A_currentdu_ - currentA).array().max(-this->maxError_) * this->weight_;
+        this->minIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdl_ - currentB).array().min(this->maxError_) * this->weight_;
+        this->maxIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdu_ - currentB).array().max(-this->maxError_) * this->weight_;
       }else{
         this->minIneq_.resize(0);
         this->maxIneq_.resize(0);
       }
     }
 
-    if(this->debugLevel_>=1){
+    if(this->debugLevel_>=2){
       std::cerr << "KeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
+      std::cerr << "A_currentC" << std::endl;
+      std::cerr << this->A_currentC_ << std::endl;
+      std::cerr << "A_currentdl" << std::endl;
+      std::cerr << this->A_currentdl_ << std::endl;
+      std::cerr << "A_currentdu" << std::endl;
+      std::cerr << this->A_currentdu_ << std::endl;
+      std::cerr << "B_currentC" << std::endl;
+      std::cerr << this->B_currentC_ << std::endl;
+      std::cerr << "B_currentdl" << std::endl;
+      std::cerr << this->B_currentdl_ << std::endl;
+      std::cerr << "B_currentdu" << std::endl;
+      std::cerr << this->B_currentdu_ << std::endl;
       std::cerr << "minIneq" << std::endl;
       std::cerr << this->minIneq_.transpose() << std::endl;
       std::cerr << "maxIneq" << std::endl;
@@ -84,6 +96,21 @@ namespace ik_constraint2{
       this->jacobianExt_.resize(0,0);
       this->jacobianIneqExt_.resize(0,0);
     }else{
+      ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
+                                           this->jacobian_A_link_,//input
+                                           cnoid::Vector3::Zero(),//input
+                                           this->jacobianColMap_,//input
+                                           this->path_A_joints_,//input
+                                           this->jacobian_A_full_
+                                           );
+      ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
+                                           this->jacobian_B_link_,//input
+                                           cnoid::Vector3::Zero(),//input
+                                           this->jacobianColMap_,//input
+                                           this->path_B_joints_,//input
+                                           this->jacobian_B_full_
+                                           );
+
       this->jacobian_.resize(0,this->jacobian_A_full_.cols());
       this->jacobianIneq_.resize(this->A_currentC_.rows() + this->B_currentC_.rows(),this->jacobian_A_full_.cols());
       this->jacobianExt_.resize(0,3);
@@ -103,12 +130,12 @@ namespace ik_constraint2{
 
       this->jacobianIneq_.topRows(this->A_currentC_.rows()) = this->weight_ * this->A_currentC_ * this->jacobian_A_local_;
       this->jacobianIneq_.bottomRows(this->B_currentC_.rows()) = this->weight_ * this->B_currentC_ * this->jacobian_B_local_;
-      this->jacobianIneqExt_.topRows(this->A_currentC_.rows()) = this->weight_ * this->jacobian_A_ext_local_;
-      this->jacobianIneqExt_.bottomRows(this->B_currentC_.rows()) = this->weight_ * this->jacobian_B_ext_local_;
+      this->jacobianIneqExt_.topRows(this->A_currentC_.rows()) = this->weight_ * this->A_currentC_ * this->jacobian_A_ext_local_;
+      this->jacobianIneqExt_.bottomRows(this->B_currentC_.rows()) = this->weight_ * this->B_currentC_ * this->jacobian_B_ext_local_;
 
     }
 
-    if(this->debugLevel_>=1){
+    if(this->debugLevel_>=2){
       std::cerr << "KeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
       std::cerr << "jacobianineq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;

@@ -36,6 +36,7 @@ endforeach(lib)
 
 add_library(${PROJECT_NAME}
   src/BulletCollisionConstraint.cpp
+  src/BulletKeepCollisionConstraint.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
