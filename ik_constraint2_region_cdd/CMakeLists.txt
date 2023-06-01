@@ -6,14 +6,14 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
   ik_constraint2
-  cddeigen)
+  choreonoid_cddlib)
 
 find_package(choreonoid REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ik_constraint2_region_cdd
-  CATKIN_DEPENDS cddeigen ik_constraint2
+  CATKIN_DEPENDS ik_constraint2
 #  DEPENDS system_lib
 )
 

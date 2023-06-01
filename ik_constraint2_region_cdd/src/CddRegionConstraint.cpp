@@ -1,5 +1,5 @@
 #include <ik_constraint2_region_cdd/CddRegionConstraint.h>
-#include <cddeigen/cddeigen.h>
+#include <choreonoid_cddlib/choreonoid_cddlib.h>
 #include <iostream>
 
 namespace ik_constraint2_region_cdd{
@@ -11,43 +11,10 @@ namespace ik_constraint2_region_cdd{
     }
     this->V_ = V;
 
-    const Eigen::MatrixXd R_nonneg(3,0);
-    const Eigen::MatrixXd R_free(3,0);
-
-    Eigen::MatrixXd A_eq;
-    Eigen::VectorXd b_eq;
-    Eigen::MatrixXd A_ineq;
-    Eigen::VectorXd b_ineq;
-    /*
-      INPUT:
-        x = V y + R_nonneg z + R_free w (sum y = 1, y >= 0, z >= 0)
-      OUTPUT:
-        A_eq   x + b_eq    = 0
-        A_ineq x + b_ineq >= 0
-    */
-    if(!cddeigen::VtoH(this->V_,
-                       R_nonneg,
-                       R_free,
-                       A_eq,
-                       b_eq,
-                       A_ineq,
-                       b_ineq,
-                       (this->debugLevel_>=2))) return false;
-
-    this->C_.resize(A_eq.rows()+A_ineq.rows(),3);
-    this->dl_.resize(A_eq.rows()+A_ineq.rows());
-    this->du_.resize(A_eq.rows()+A_ineq.rows());
-    for(int i=0;i<A_eq.rows();i++){
-      for(int j=0;j<3;j++) this->C_.coeffRef(i,j) = A_eq(i,j);
-      this->dl_[i] = -b_eq(i);
-      this->du_[i] = -b_eq(i);
-    }
-    for(int i=0;i<A_ineq.rows();i++){
-      for(int j=0;j<3;j++) this->C_.coeffRef(A_eq.rows()+i,j) = A_ineq(i,j);
-      this->dl_[A_eq.rows()+i] = -b_ineq(i);
-      this->du_[A_eq.rows()+i] = 1e10;
-    }
-    return true;
+    return choreonoid_cddlib::convertToFACEExpression(V,
+                                                      this->C_,
+                                                      this->dl_,
+                                                      this->du_);
   }
 
 

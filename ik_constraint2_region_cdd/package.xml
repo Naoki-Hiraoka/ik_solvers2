@@ -10,7 +10,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>cddeigen</depend>
+  <depend>choreonoid_cddlib</depend>
   <depend>choreonoid</depend>
   <depend>ik_constraint2</depend>
 
