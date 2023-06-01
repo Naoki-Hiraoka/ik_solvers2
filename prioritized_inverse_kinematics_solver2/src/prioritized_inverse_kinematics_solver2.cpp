@@ -7,13 +7,22 @@
 #include <cnoid/TimeMeasure>
 
 namespace prioritized_inverse_kinematics_solver2 {
-  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, bool updateJacobian=true){
+  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, const IKParam& param, bool updateJacobian=true){
+    cnoid::TimeMeasure timer;
+    if(param.debugLevel>0) timer.begin();
+
     for ( int i=0; i<ikc_list.size(); i++ ) {
       for(size_t j=0;j<ikc_list[i].size(); j++){
         ikc_list[i][j]->updateBounds();
         if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
       }
     }
+
+    if(param.debugLevel>0) {
+      double time = timer.measure();
+      std::cerr << "[PrioritizedIK] updateConstraints time: " << time << "[s]." << std::endl;
+    }
+
   }
 
   inline bool checkConstraintsSatisfied(const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list) {
@@ -55,11 +64,14 @@ namespace prioritized_inverse_kinematics_solver2 {
 
       int num_eqs = 0;
       int num_ineqs = 0;
+      int num_exts = 0;
       std::vector<std::reference_wrapper<const Eigen::VectorXd> > errors;errors.reserve(ikc_list[i].size());
       std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobians;jacobians.reserve(ikc_list[i].size());
       std::vector<std::reference_wrapper <const Eigen::VectorXd> > minineqs;minineqs.reserve(ikc_list[i].size());
       std::vector<std::reference_wrapper<const Eigen::VectorXd> > maxineqs;maxineqs.reserve(ikc_list[i].size());
       std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianineqs;jacobianineqs.reserve(ikc_list[i].size());
+      std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianexts;jacobianexts.reserve(ikc_list[i].size());
+      std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianineqexts;jacobianineqexts.reserve(ikc_list[i].size());
 
       for(size_t j=0; j<ikc_list[i].size(); j++){
         errors.emplace_back(ikc_list[i][j]->getEq());
@@ -67,9 +79,12 @@ namespace prioritized_inverse_kinematics_solver2 {
         jacobianineqs.emplace_back(ikc_list[i][j]->getJacobianIneq());
         minineqs.emplace_back(ikc_list[i][j]->getMinIneq());
         maxineqs.emplace_back(ikc_list[i][j]->getMaxIneq());
+        jacobianexts.emplace_back(ikc_list[i][j]->getJacobianExt());
+        jacobianineqexts.emplace_back(ikc_list[i][j]->getJacobianIneqExt());
 
         num_eqs += errors[j].get().rows();
         num_ineqs += minineqs[j].get().rows();
+        num_exts += std::max(jacobianexts[j].get().cols(), jacobianineqexts[j].get().cols());
       }
 
       prevTasks[i]->A().resize(num_eqs, dim);
@@ -79,18 +94,30 @@ namespace prioritized_inverse_kinematics_solver2 {
       prevTasks[i]->du().resize(num_ineqs);
       prevTasks[i]->wa() = cnoid::VectorXd::Ones(num_eqs);
       prevTasks[i]->wc() = cnoid::VectorXd::Ones(num_ineqs);
+      prevTasks[i]->A_ext().resize(num_eqs, num_exts);
+      prevTasks[i]->C_ext().resize(num_ineqs, num_exts);
 
       int idx_eq = 0;
       int idx_ineq = 0;
+      int idx_ext = 0;
       for(size_t j=0;j<ikc_list[i].size(); j++){
         prevTasks[i]->A().middleRows(idx_eq,errors[j].get().rows()) = jacobians[j].get();
         prevTasks[i]->b().segment(idx_eq,errors[j].get().rows()) = errors[j].get();
-        idx_eq += errors[j].get().rows();
 
         prevTasks[i]->C().middleRows(idx_ineq,minineqs[j].get().rows()) = jacobianineqs[j].get();
         prevTasks[i]->dl().segment(idx_ineq,minineqs[j].get().rows()) = minineqs[j].get();
         prevTasks[i]->du().segment(idx_ineq,minineqs[j].get().rows()) = maxineqs[j].get();
+
+        Eigen::SparseMatrix<double, Eigen::ColMajor> A_ext_ColMajor(jacobianexts[j].get().rows(),num_exts);
+        A_ext_ColMajor.middleCols(idx_ext,jacobianexts[j].get().cols()) = jacobianexts[j].get();
+        prevTasks[i]->A_ext().middleRows(idx_eq,A_ext_ColMajor.rows()) = A_ext_ColMajor;
+        Eigen::SparseMatrix<double, Eigen::ColMajor> C_ext_ColMajor(jacobianineqexts[j].get().rows(),num_exts);
+        C_ext_ColMajor.middleCols(idx_ext,jacobianineqexts[j].get().cols()) = jacobianineqexts[j].get();
+        prevTasks[i]->C_ext().middleRows(idx_ineq,C_ext_ColMajor.rows()) = C_ext_ColMajor;
+
+        idx_eq += errors[j].get().rows();
         idx_ineq += minineqs[j].get().rows();
+        idx_ext += std::max(jacobianexts[j].get().cols(), jacobianineqexts[j].get().cols());
       }
 
       double sumError = 0;
@@ -99,7 +126,9 @@ namespace prioritized_inverse_kinematics_solver2 {
         if(prevTasks[i]->dl()[j]>0) sumError += std::pow(prevTasks[i]->dl()[j],2);
         if(prevTasks[i]->du()[j]<0) sumError += std::pow(prevTasks[i]->du()[j],2);
       }
-      prevTasks[i]->w() = cnoid::VectorXd::Ones(dim) * std::min(((param.wmaxVec.size()==ikc_list.size())?param.wmaxVec[i]:param.wmax), (sumError * ((param.weVec.size()==ikc_list.size())?param.weVec[i]:param.we)+ ((param.wnVec.size()==ikc_list.size())?param.wnVec[i]:param.wn)));
+      double weight = std::min(((param.wmaxVec.size()==ikc_list.size())?param.wmaxVec[i]:param.wmax), (sumError * ((param.weVec.size()==ikc_list.size())?param.weVec[i]:param.we)+ ((param.wnVec.size()==ikc_list.size())?param.wnVec[i]:param.wn)));
+      prevTasks[i]->w() = cnoid::VectorXd::Ones(dim) * weight;
+      prevTasks[i]->w_ext() = cnoid::VectorXd::Ones(num_exts) * weight;
       if(param.dqWeight.size() == dim) {
         for(int j=0;j<dim;j++) prevTasks[i]->w()[j] *= param.dqWeight[j];
       }
@@ -185,6 +214,10 @@ namespace prioritized_inverse_kinematics_solver2 {
                     const IKParam& param,
                     std::shared_ptr<std::vector<std::vector<double> > > path,
                     std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc) {
+
+    cnoid::TimeMeasure timer;
+    if(param.debugLevel>0) timer.begin();
+
     std::set<cnoid::BodyPtr> bodies;
     for(size_t i=0;i<variables.size();i++){
       if(variables[i]->body()) bodies.insert(variables[i]->body());
@@ -223,11 +256,12 @@ namespace prioritized_inverse_kinematics_solver2 {
         (*it)->calcCenterOfMass();
       }
 
-      updateConstraints(variables, ikc_list);
+      updateConstraints(variables, ikc_list, param);
       if(loop >= param.minIteration){
         if (checkConstraintsSatisfied(ikc_list)) {
           if(param.debugLevel > 0) {
-            std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << std::endl;
+            double time = timer.measure();
+            std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << " time: " << time << "[s]." << std::endl;
           }
           if(path != nullptr) {
             path->resize(path->size() + 1);
@@ -263,16 +297,18 @@ namespace prioritized_inverse_kinematics_solver2 {
       (*it)->calcCenterOfMass();
     }
 
-    if(param.debugLevel > 0) {
-      std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << std::endl;
-    }
     if(path != nullptr) {
       path->resize(path->size() + 1);
       link2Frame(variables, path->back());
     }
 
+    if(param.debugLevel > 0) {
+      double time = timer.measure();
+      std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << " time: " << time << "[s]." << std::endl;
+    }
+
     if(param.checkFinalState){
-      updateConstraints(variables, ikc_list, false);
+      updateConstraints(variables, ikc_list, param, false);
       if (checkConstraintsSatisfied(ikc_list)) return true;
       else return false;
     }else{

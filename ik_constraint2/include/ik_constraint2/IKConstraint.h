@@ -36,6 +36,9 @@ namespace ik_constraint2{
     // 不等式制約のmax値を返す
     const Eigen::VectorXd& getMaxIneq () const { return this->maxIneq_; }
 
+    const Eigen::SparseMatrix<double,Eigen::RowMajor>& getJacobianExt () const { return this->jacobianExt_; }
+    const Eigen::SparseMatrix<double,Eigen::RowMajor>& getJacobianIneqExt () const { return this->jacobianIneqExt_; }
+
     const int& debugLevel() const { return debugLevel_;}
     int& debugLevel() { return debugLevel_;}
 
@@ -80,6 +83,8 @@ namespace ik_constraint2{
     Eigen::VectorXd minIneq_;
     Eigen::VectorXd maxIneq_;
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianIneq_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianExt_;
+    Eigen::SparseMatrix<double,Eigen::RowMajor> jacobianIneqExt_;
 
   };
 }
