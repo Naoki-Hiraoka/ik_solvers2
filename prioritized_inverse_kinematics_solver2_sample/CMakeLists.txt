@@ -49,6 +49,7 @@ install(TARGETS SampleSR1
 add_library(CnoidPrioritizedInverseKinematicsSolver2SamplePlugin SHARED
   src/CnoidPrioritizedInverseKinematicsSolver2SamplePlugin.cpp
   src/sample0_1_bullet.cpp
+  src/sample0_2_bullet.cpp
   src/sample1_4limb.cpp
   src/sample2_collision.cpp
   src/sample3_collision.cpp
