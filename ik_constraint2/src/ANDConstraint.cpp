@@ -46,39 +46,61 @@ namespace ik_constraint2{
   void ANDConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
     std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobians;jacobians.reserve(this->children_.size());
     std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianIneqs;jacobianIneqs.reserve(this->children_.size());
+    std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianExts;jacobianExts.reserve(this->children_.size());
+    std::vector<std::reference_wrapper<const Eigen::SparseMatrix<double,Eigen::RowMajor> > > jacobianIneqExts;jacobianIneqExts.reserve(this->children_.size());
 
     double dim = 0;
     for(size_t i=0;i<joints.size();i++) dim+=IKConstraint::getJointDOF(joints[i]);
 
     int num_eqs = 0;
     int num_ineqs = 0;
+    int num_exts = 0;
     for(int i=0;i<this->children_.size();i++) {
       this->children_[i]->updateJacobian(joints);
       jacobians.emplace_back(this->children_[i]->getJacobian());
       jacobianIneqs.emplace_back(this->children_[i]->getJacobianIneq());
+      jacobianExts.emplace_back(this->children_[i]->getJacobianExt());
+      jacobianIneqExts.emplace_back(this->children_[i]->getJacobianIneqExt());
 
       num_eqs += jacobians[i].get().rows();
       num_ineqs += jacobianIneqs[i].get().rows();
+      num_exts += std::max(jacobianExts[i].get().cols(), jacobianIneqExts[i].get().cols());
     }
 
     this->jacobian_.resize(num_eqs, dim);
     this->jacobianIneq_.resize(num_ineqs, dim);
+    this->jacobianExt_.setZero();
+    this->jacobianExt_.resize(num_eqs, num_exts);
+    this->jacobianIneqExt_.setZero();
+    this->jacobianIneqExt_.resize(num_ineqs, num_exts);
 
     int idx_eq = 0;
     int idx_ineq = 0;
+    int idx_exts = 0;
     for(size_t i=0;i<this->children_.size(); i++){
       this->jacobian_.middleRows(idx_eq,jacobians[i].get().rows()) = jacobians[i].get();
-      idx_eq += jacobians[i].get().rows();
       this->jacobianIneq_.middleRows(idx_ineq,jacobianIneqs[i].get().rows()) = jacobianIneqs[i].get();
+      Eigen::SparseMatrix<double,Eigen::ColMajor> jacobianExtColMajor(jacobianExts[i].get().rows(), num_exts);
+      jacobianExtColMajor.middleCols(idx_exts, jacobianExts[i].get().cols()) = jacobianExts[i].get();
+      this->jacobianExt_.middleRows(idx_eq,jacobianExtColMajor.rows()) = jacobianExtColMajor;
+      Eigen::SparseMatrix<double,Eigen::ColMajor> jacobianIneqExtColMajor(jacobianIneqExts[i].get().rows(), num_exts);
+      jacobianIneqExtColMajor.middleCols(idx_exts, jacobianIneqExts[i].get().cols()) = jacobianIneqExts[i].get();
+      this->jacobianIneqExt_.middleRows(idx_ineq,jacobianIneqExtColMajor.rows()) = jacobianIneqExtColMajor;
+      idx_eq += jacobians[i].get().rows();
       idx_ineq += jacobianIneqs[i].get().rows();
+      idx_exts += std::max(jacobianExts[i].get().cols(), jacobianIneqExts[i].get().cols());
     }
 
     if(this->debugLevel_>=2){
       std::cerr << "ANDConstraint" << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
+      std::cerr << "jacobianExt" << std::endl;
+      std::cerr << this->jacobianExt_ << std::endl;
       std::cerr << "jacobianIneq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
+      std::cerr << "jacobianIneqExt" << std::endl;
+      std::cerr << this->jacobianIneqExt_ << std::endl;
     }
 
     return;

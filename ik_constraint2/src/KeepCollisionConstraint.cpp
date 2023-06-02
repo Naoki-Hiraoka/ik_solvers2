@@ -33,10 +33,10 @@ namespace ik_constraint2{
 
         Eigen::VectorXd currentA = this->A_currentC_ * (this->A_link_->T().inverse() * this->currentp_);
         Eigen::VectorXd currentB = this->B_currentC_ * (this->B_link_->T().inverse() * this->currentp_);
-        this->minIneq_.head(this->A_currentC_.rows()) = (this->A_currentdl_ - currentA).array().min(this->maxError_) * this->weight_;
-        this->maxIneq_.head(this->A_currentC_.rows()) = (this->A_currentdu_ - currentA).array().max(-this->maxError_) * this->weight_;
-        this->minIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdl_ - currentB).array().min(this->maxError_) * this->weight_;
-        this->maxIneq_.tail(this->B_currentC_.rows()) = (this->B_currentdu_ - currentB).array().max(-this->maxError_) * this->weight_;
+        this->minIneq_.head(this->A_currentC_.rows()) = ((this->A_currentdl_ - currentA).array() + this->tolerance_).min(this->maxError_) * this->weight_;
+        this->maxIneq_.head(this->A_currentC_.rows()) = ((this->A_currentdu_ - currentA).array() - this->tolerance_).max(-this->maxError_) * this->weight_;
+        this->minIneq_.tail(this->B_currentC_.rows()) = ((this->B_currentdl_ - currentB).array() + this->tolerance_).min(this->maxError_) * this->weight_;
+        this->maxIneq_.tail(this->B_currentC_.rows()) = ((this->B_currentdu_ - currentB).array() - this->tolerance_).max(-this->maxError_) * this->weight_;
       }else{
         this->minIneq_.resize(0);
         this->maxIneq_.resize(0);

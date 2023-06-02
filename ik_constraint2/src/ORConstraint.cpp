@@ -41,18 +41,26 @@ namespace ik_constraint2{
       for(size_t i=0;i<joints.size();i++) dim+=IKConstraint::getJointDOF(joints[i]);
       this->jacobian_.resize(0,dim);
       this->jacobianIneq_.resize(0,dim);
+      this->jacobianExt_.resize(0,0);
+      this->jacobianIneqExt_.resize(0,0);
     }else{
       this->children_[this->activeIdx_]->updateJacobian(joints);
       this->jacobian_ = this->children_[this->activeIdx_]->getJacobian();
       this->jacobianIneq_ = this->children_[this->activeIdx_]->getJacobianIneq();
+      this->jacobianExt_ = this->children_[this->activeIdx_]->getJacobianExt();
+      this->jacobianIneqExt_ = this->children_[this->activeIdx_]->getJacobianIneqExt();
     }
 
     if(this->debugLevel_>=2){
       std::cerr << "ORConstraint " << this->activeIdx_ << std::endl;
       std::cerr << "jacobian" << std::endl;
       std::cerr << this->jacobian_ << std::endl;
+      std::cerr << "jacobianExt" << std::endl;
+      std::cerr << this->jacobianExt_ << std::endl;
       std::cerr << "jacobianIneq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;
+      std::cerr << "jacobianIneqExt" << std::endl;
+      std::cerr << this->jacobianIneqExt_ << std::endl;
     }
 
     return;
