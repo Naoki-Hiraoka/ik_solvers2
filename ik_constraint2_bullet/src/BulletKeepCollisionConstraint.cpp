@@ -31,6 +31,7 @@ namespace ik_constraint2_bullet{
       }
       this->A_link_bulletModel_ = A_link;
     }
+
     if(B_link && B_link != this->B_link_bulletModel_){
       if(this->useSingleMeshB_) {
         std::shared_ptr<btConvexShape> m = choreonoid_bullet::convertToBulletModel(B_link->collisionShape()); // 内部で凸包を計算しているので、collisionShapeは凸である必要はない
@@ -42,18 +43,16 @@ namespace ik_constraint2_bullet{
       this->B_link_bulletModel_ = B_link;
     }
 
-    if(this->A_bulletModel_.size() == 0 ||
-       this->A_bulletModel_.size() != this->A_FACE_C_.size() ||
+    if(this->A_bulletModel_.size() != this->A_FACE_C_.size() ||
        this->A_bulletModel_.size() != this->A_FACE_dl_.size() ||
        this->A_bulletModel_.size() != this->A_FACE_du_.size()){
-      std::cerr << __FUNCTION__ <<  "model A size mismatch" << std::endl;
+      std::cerr << __FUNCTION__ <<  "model A size mismatch" << this->A_bulletModel_.size() << " " << this->A_FACE_C_.size() << " " << this->A_FACE_dl_.size() << " " << this->A_FACE_du_.size() << std::endl;
       return false;
     }
-    if(this->B_bulletModel_.size() == 0 ||
-       this->B_bulletModel_.size() != this->B_FACE_C_.size() ||
+    if(this->B_bulletModel_.size() != this->B_FACE_C_.size() ||
        this->B_bulletModel_.size() != this->B_FACE_dl_.size() ||
        this->B_bulletModel_.size() != this->B_FACE_du_.size()){
-      std::cerr << __FUNCTION__ <<  "model B size mismatch" << std::endl;
+      std::cerr << __FUNCTION__ <<  "model B size mismatch" << this->B_bulletModel_.size() << " " << this->B_FACE_C_.size() << " " << this->B_FACE_dl_.size() << " " << this->B_FACE_du_.size() << std::endl;
       return false;
     }
 

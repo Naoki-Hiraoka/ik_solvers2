@@ -21,7 +21,8 @@ namespace ik_constraint2{
                                  this->B_currentdl_,
                                  this->B_currentdu_
                                  )){
-      this->currentDistance_ = - this->ignorePenetration_;
+      // Collisionできない.
+      this->currentDistance_ = 1e10;
       this->minIneq_.resize(0);
       this->maxIneq_.resize(0);
     }else{
