@@ -18,6 +18,18 @@ namespace ik_constraint2_bullet{
     bool& useSingleMeshB() { return useSingleMeshB_; }
     const bool& useSingleMeshB() const { return useSingleMeshB_; }
 
+    // 各リンクのbullet model. *_link_bulletModelと*_linkが一致していなければ、自動で作成される.
+    std::vector<std::shared_ptr<btConvexShape> >& A_bulletModel() { return A_bulletModel_; }
+    const std::vector<std::shared_ptr<btConvexShape> >& A_bulletModel() const { return A_bulletModel_; }
+    std::vector<std::shared_ptr<btConvexShape> >& B_bulletModel() { return B_bulletModel_; }
+    const std::vector<std::shared_ptr<btConvexShape> >& B_bulletModel() const { return B_bulletModel_; }
+    // *_bulletModel_作成時のの*_link
+    cnoid::LinkPtr& A_link_bulletModel() { return A_link_bulletModel_; }
+    const cnoid::LinkPtr& A_link_bulletModel() const { return A_link_bulletModel_; }
+    cnoid::LinkPtr& B_link_bulletModel() { return B_link_bulletModel_; }
+    const cnoid::LinkPtr& B_link_bulletModel() const { return B_link_bulletModel_; }
+
+    // 各リンク形状のFACE表現. サイズは*_bulletModelと同じでなければならない.
     std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> >& A_FACE_C() { return A_FACE_C_; }
     const std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> >& A_FACE_C() const { return A_FACE_C_; }
     std::vector<Eigen::VectorXd>& A_FACE_dl() { return A_FACE_dl_; }
@@ -31,11 +43,6 @@ namespace ik_constraint2_bullet{
     std::vector<Eigen::VectorXd>& B_FACE_du() { return B_FACE_du_; }
     const std::vector<Eigen::VectorXd>& B_FACE_du() const { return B_FACE_du_; }
 
-    // ユーザーは使わない. copy()の中で使われる
-    cnoid::LinkPtr& A_link_bulletModel() { return A_link_bulletModel_; }
-    const cnoid::LinkPtr& A_link_bulletModel() const { return A_link_bulletModel_; }
-    cnoid::LinkPtr& B_link_bulletModel() { return B_link_bulletModel_; }
-    const cnoid::LinkPtr& B_link_bulletModel() const { return B_link_bulletModel_; }
   protected:
     //pはworld
     virtual bool computeCommonPoint(const cnoid::LinkPtr A_link,
