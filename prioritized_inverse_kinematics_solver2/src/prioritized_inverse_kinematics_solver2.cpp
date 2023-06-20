@@ -25,14 +25,14 @@ namespace prioritized_inverse_kinematics_solver2 {
 
   }
 
-  inline bool checkConstraintsSatisfied(const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list) {
-    bool converged = true;
-    for ( int i=0; i<ikc_list.size(); i++ ) {
+  inline bool checkConstraintsSatisfied(const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, int checkLevel = std::numeric_limits<int>::max()) {
+    bool satisfied = true;
+    for ( int i=0; i<ikc_list.size() && (checkLevel>=0 ? i<=checkLevel : true); i++ ) {
       for(size_t j=0;j<ikc_list[i].size(); j++){
-        if (!ikc_list[i][j]->isSatisfied()) converged = false;
+        if (!ikc_list[i][j]->isSatisfied()) satisfied = false;
       }
     }
-    return converged;
+    return satisfied;
   }
 
   // 返り値は、convergeしたかどうか
@@ -235,49 +235,6 @@ namespace prioritized_inverse_kinematics_solver2 {
       link2Frame(variables, path->at(0));
     }
 
-    int loop;
-    for(loop=0; loop < param.maxIteration; loop++) {
-      if(param.calcVelocity){
-        for(size_t i=0;i<variables.size();i++){
-          if(variables[i]->isFreeJoint()) {
-            cnoid::Position& initialT = initialJointStateMap[variables[i]].T;
-            variables[i]->v() = (variables[i]->p() - initialT.translation()) / param.dt;
-            cnoid::AngleAxis angleAxis = cnoid::AngleAxis(variables[i]->R() * initialT.linear().transpose());
-            variables[i]->w() = angleAxis.angle()*angleAxis.axis() / param.dt;
-          }
-          else if(variables[i]->isRotationalJoint() || variables[i]->isPrismaticJoint()) {
-            double initialq = initialJointStateMap[variables[i]].q;
-            variables[i]->dq() = (variables[i]->q() - initialq) / param.dt;
-        }
-        }
-      }
-      for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
-        (*it)->calcForwardKinematics(param.calcVelocity);
-        (*it)->calcCenterOfMass();
-      }
-
-      updateConstraints(variables, ikc_list, param);
-      if(loop >= param.minIteration){
-        if (checkConstraintsSatisfied(ikc_list)) {
-          if(param.debugLevel > 0) {
-            double time = timer.measure();
-            std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << " time: " << time << "[s]." << std::endl;
-          }
-          if(path != nullptr) {
-            path->resize(path->size() + 1);
-            link2Frame(variables, path->back());
-          }
-          return true;
-        }
-      }
-      bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
-      if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
-        path->resize(path->size() + 1);
-        link2Frame(variables, path->back());
-      }
-      if(converged) break;
-    }
-
     if(param.calcVelocity){
       for(size_t i=0;i<variables.size();i++){
         if(variables[i]->isFreeJoint()) {
@@ -296,23 +253,66 @@ namespace prioritized_inverse_kinematics_solver2 {
       (*it)->calcForwardKinematics(param.calcVelocity);
       (*it)->calcCenterOfMass();
     }
+    updateConstraints(variables, ikc_list, param);
 
-    if(path != nullptr) {
-      path->resize(path->size() + 1);
-      link2Frame(variables, path->back());
-    }
+    int loop;
+    for(loop=0; loop < param.maxIteration; loop++) {
+      bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
+      if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
+        path->resize(path->size() + 1);
+        link2Frame(variables, path->back());
+      }
 
-    if(param.debugLevel > 0) {
-      double time = timer.measure();
-      std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << " time: " << time << "[s]." << std::endl;
-    }
+      if(param.calcVelocity){
+        for(size_t i=0;i<variables.size();i++){
+          if(variables[i]->isFreeJoint()) {
+            cnoid::Position& initialT = initialJointStateMap[variables[i]].T;
+            variables[i]->v() = (variables[i]->p() - initialT.translation()) / param.dt;
+            cnoid::AngleAxis angleAxis = cnoid::AngleAxis(variables[i]->R() * initialT.linear().transpose());
+            variables[i]->w() = angleAxis.angle()*angleAxis.axis() / param.dt;
+          }
+          else if(variables[i]->isRotationalJoint() || variables[i]->isPrismaticJoint()) {
+            double initialq = initialJointStateMap[variables[i]].q;
+            variables[i]->dq() = (variables[i]->q() - initialq) / param.dt;
+          }
+        }
+      }
+      for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
+        (*it)->calcForwardKinematics(param.calcVelocity);
+        (*it)->calcCenterOfMass();
+      }
+      updateConstraints(variables, ikc_list, param);
 
-    if(param.checkFinalState){
-      updateConstraints(variables, ikc_list, param, false);
-      if (checkConstraintsSatisfied(ikc_list)) return true;
-      else return false;
-    }else{
-      return false;
+      bool terminate = false;
+      bool satisfied = false;
+      if(loop+1 >= param.maxIteration){
+        terminate = true;
+        satisfied = checkConstraintsSatisfied(ikc_list);
+      }else{
+        if(converged) {
+          if(checkConstraintsSatisfied(ikc_list, param.satisfiedConvergeLevel)){
+            terminate = true;
+            satisfied = checkConstraintsSatisfied(ikc_list);
+          }
+        }
+        if(!terminate && loop >= param.minIteration){
+          if (checkConstraintsSatisfied(ikc_list)) {
+            terminate = true;
+            satisfied = true;
+          }
+        }
+      }
+      if(terminate){
+        if(path != nullptr) {
+          path->resize(path->size() + 1);
+          link2Frame(variables, path->back());
+        }
+        if(param.debugLevel > 0) {
+          double time = timer.measure();
+          std::cerr << "[PrioritizedIK] solveIKLoop loop: " << loop << " time: " << time << "[s]." << std::endl;
+        }
+        return satisfied;
+      }
     }
   }
 }

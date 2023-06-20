@@ -16,7 +16,12 @@ namespace ik_constraint2_bullet{
     bool& useSingleMesh() { return useSingleMesh_; }
     const bool& useSingleMesh() const { return useSingleMesh_; }
 
-    // ユーザーは使わない. copy()の中で使われる
+    // 各リンクのbullet model. *_link_bulletModelと*_linkが一致していなければ、自動で作成される.
+    std::vector<std::shared_ptr<btConvexShape> >& A_bulletModel() { return A_bulletModel_; }
+    const std::vector<std::shared_ptr<btConvexShape> >& A_bulletModel() const { return A_bulletModel_; }
+    std::vector<std::shared_ptr<btConvexShape> >& B_bulletModel() { return B_bulletModel_; }
+    const std::vector<std::shared_ptr<btConvexShape> >& B_bulletModel() const { return B_bulletModel_; }
+    // *_bulletModel_作成時のの*_link
     cnoid::LinkPtr& A_link_bulletModel() { return A_link_bulletModel_; }
     const cnoid::LinkPtr& A_link_bulletModel() const { return A_link_bulletModel_; }
     cnoid::LinkPtr& B_link_bulletModel() { return B_link_bulletModel_; }
