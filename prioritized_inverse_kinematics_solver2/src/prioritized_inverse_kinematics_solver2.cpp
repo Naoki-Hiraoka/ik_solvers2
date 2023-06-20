@@ -7,7 +7,7 @@
 #include <cnoid/TimeMeasure>
 
 namespace prioritized_inverse_kinematics_solver2 {
-  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, const IKParam& param, bool updateJacobian=true){
+  inline void updateConstraints(const std::vector<cnoid::LinkPtr>& variables, const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list, const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& rejections, const IKParam& param, bool updateJacobian=true){
     cnoid::TimeMeasure timer;
     if(param.debugLevel>0) timer.begin();
 
@@ -16,6 +16,10 @@ namespace prioritized_inverse_kinematics_solver2 {
         ikc_list[i][j]->updateBounds();
         if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
       }
+    }
+
+    for ( int i=0; i<rejections.size(); i++ ) {
+      rejections[i]->updateBounds();
     }
 
     if(param.debugLevel>0) {
@@ -290,7 +294,7 @@ namespace prioritized_inverse_kinematics_solver2 {
       (*it)->calcForwardKinematics(param.calcVelocity);
       (*it)->calcCenterOfMass();
     }
-    updateConstraints(variables, ikc_list, param);
+    updateConstraints(variables, ikc_list, rejections, param);
 
     if(!checkRejectionsSatisfied(rejections)) return false;
 
@@ -316,7 +320,7 @@ namespace prioritized_inverse_kinematics_solver2 {
         (*it)->calcForwardKinematics(param.calcVelocity);
         (*it)->calcCenterOfMass();
       }
-      updateConstraints(variables, ikc_list, param);
+      updateConstraints(variables, ikc_list, rejections, param);
 
       if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
         path->resize(path->size() + 1);
@@ -336,7 +340,7 @@ namespace prioritized_inverse_kinematics_solver2 {
         if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
           path->pop_back();
         }
-        updateConstraints(variables, ikc_list, param);
+        updateConstraints(variables, ikc_list, rejections, param);
         satisfied = checkConstraintsSatisfied(ikc_list);
       }else if(loop+1 >= param.maxIteration){
         terminate = true;
