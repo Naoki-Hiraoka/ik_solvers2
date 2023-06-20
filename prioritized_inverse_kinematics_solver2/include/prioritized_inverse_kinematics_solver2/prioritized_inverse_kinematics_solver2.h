@@ -45,9 +45,29 @@ namespace prioritized_inverse_kinematics_solver2 {
     double convergeThre = 5e-3; // 各イテレーションでの変位のノルムがconvergeThre未満の場合に、maxIterationに行っていなくても, minIteraionに行っていなくても、isSatisfiedでなくても、終了する
     int satisfiedConvergeLevel = -1; // convergeThreを満たしても、ikclistのsatisfiedConvergeLevel番目の要素までがisSatisfiedでなければ終了しない.
     size_t pathOutputLoop = 1; // このloop回数に一回、途中経過のpathを出力する. 1以上
+
   };
   bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                     const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
+                    const IKParam& param = IKParam(),
+                    std::shared_ptr<std::vector<std::vector<double> > > path = nullptr, // 各イテレーションでの値. freejointはx y z qx qy qz qwの順. 始点と終点を含む
+                    std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc = [](std::shared_ptr<prioritized_qp_base::Task>& task, int debugLevel){
+                      std::shared_ptr<prioritized_qp_osqp::Task> taskOSQP = std::dynamic_pointer_cast<prioritized_qp_osqp::Task>(task);
+                      if(!taskOSQP){
+                        task = std::make_shared<prioritized_qp_osqp::Task>();
+                        taskOSQP = std::dynamic_pointer_cast<prioritized_qp_osqp::Task>(task);
+                      }
+                      taskOSQP->settings().verbose = (debugLevel > 1);
+                      taskOSQP->settings().max_iter = 4000;
+                      taskOSQP->settings().eps_abs = 1e-3;// 大きい方が速いが，不正確. 1e-5はかなり小さい. 1e-4は普通
+                      taskOSQP->settings().eps_rel = 1e-3;// 大きい方が速いが，不正確. 1e-5はかなり小さい. 1e-4は普通
+                      taskOSQP->settings().scaled_termination = true;// avoid too severe termination check
+                    }
+                    );
+  bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
+                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                    const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& rejections, // これをsatisfyしなくなる直前のstateを返す
                     std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
                     const IKParam& param = IKParam(),
                     std::shared_ptr<std::vector<std::vector<double> > > path = nullptr, // 各イテレーションでの値. freejointはx y z qx qy qz qwの順. 始点と終点を含む

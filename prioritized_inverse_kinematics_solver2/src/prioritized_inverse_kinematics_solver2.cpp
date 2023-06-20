@@ -35,6 +35,14 @@ namespace prioritized_inverse_kinematics_solver2 {
     return satisfied;
   }
 
+  inline bool checkRejectionsSatisfied(const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > rejections) {
+    bool satisfied = true;
+    for ( int i=0; i<rejections.size(); i++ ) {
+      if (!rejections[i]->isSatisfied()) satisfied = false;
+    }
+    return satisfied;
+  }
+
   // 返り値は、convergeしたかどうか
   inline bool solveIKOnce (const std::vector<cnoid::LinkPtr>& variables,
                            const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
@@ -208,8 +216,35 @@ namespace prioritized_inverse_kinematics_solver2 {
     }
   }
 
+  inline void frame2Link(std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links){
+    int idx = 0;
+    for(int l=0;l<links.size();l++){
+      if(links[l]->isRevoluteJoint() || links[l]->isPrismaticJoint()) {
+        links[l]->q() = frame[idx];
+        idx++;
+      }else if(links[l]->isFreeJoint()) {
+        links[l]->p()[0] = frame[idx+0];
+        links[l]->p()[1] = frame[idx+1];
+        links[l]->p()[2] = frame[idx+2];
+        cnoid::Quaternion q(frame[idx+6],frame[idx+3],frame[idx+4],frame[idx+5]);
+        links[l]->R() = q.toRotationMatrix();
+        idx+=7;
+      }
+    }
+  }
+
   bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                     const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                    std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
+                    const IKParam& param,
+                    std::shared_ptr<std::vector<std::vector<double> > > path,
+                    std::function<void(std::shared_ptr<prioritized_qp_base::Task>&,int)> taskGeneratorFunc){
+    return solveIKLoop(variables, ikc_list, std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >(), prevTasks, param, path, taskGeneratorFunc);
+  }
+
+  bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
+                    const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
+                    const std::vector<std::shared_ptr<ik_constraint2::IKConstraint> >& rejections, // これをsatisfyしなくなる直前のstateを返す
                     std::vector<std::shared_ptr<prioritized_qp_base::Task> >& prevTasks,
                     const IKParam& param,
                     std::shared_ptr<std::vector<std::vector<double> > > path,
@@ -230,9 +265,11 @@ namespace prioritized_inverse_kinematics_solver2 {
       else initialJointStateMap[variables[i]] = InitialJointState();
     }
 
+    std::vector<double> prevFrame;
+    link2Frame(variables, prevFrame);
     if(path != nullptr) {
       path->resize(1);
-      link2Frame(variables, path->at(0));
+      path->at(0) = prevFrame;
     }
 
     if(param.calcVelocity){
@@ -255,13 +292,11 @@ namespace prioritized_inverse_kinematics_solver2 {
     }
     updateConstraints(variables, ikc_list, param);
 
+    if(!checkRejectionsSatisfied(rejections)) return false;
+
     int loop;
     for(loop=0; loop < param.maxIteration; loop++) {
       bool converged = solveIKOnce(variables, ikc_list, prevTasks, param, taskGeneratorFunc);
-      if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
-        path->resize(path->size() + 1);
-        link2Frame(variables, path->back());
-      }
 
       if(param.calcVelocity){
         for(size_t i=0;i<variables.size();i++){
@@ -283,9 +318,27 @@ namespace prioritized_inverse_kinematics_solver2 {
       }
       updateConstraints(variables, ikc_list, param);
 
+      if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
+        path->resize(path->size() + 1);
+        link2Frame(variables, path->back());
+      }
+
       bool terminate = false;
       bool satisfied = false;
-      if(loop+1 >= param.maxIteration){
+      if(!checkRejectionsSatisfied(rejections)){
+        terminate = true;
+        // 一つ前に戻る
+        frame2Link(prevFrame, variables); // 速度無視している
+        for(std::set<cnoid::BodyPtr>::iterator it=bodies.begin(); it != bodies.end(); it++){
+          (*it)->calcForwardKinematics(param.calcVelocity);
+          (*it)->calcCenterOfMass();
+        }
+        if(path != nullptr && (loop + 1) % param.pathOutputLoop == 0) {
+          path->pop_back();
+        }
+        updateConstraints(variables, ikc_list, param);
+        satisfied = checkConstraintsSatisfied(ikc_list);
+      }else if(loop+1 >= param.maxIteration){
         terminate = true;
         satisfied = checkConstraintsSatisfied(ikc_list);
       }else{
