@@ -370,6 +370,7 @@ namespace prioritized_inverse_kinematics_solver2 {
         }
         return satisfied;
       }
+      link2Frame(variables, prevFrame);
     }
   }
 }
