@@ -88,8 +88,12 @@ namespace ik_constraint2{
   }
 
   void JointLimitConstraint::calcMinMaxIneq(Eigen::VectorXd& maxIneq, Eigen::VectorXd& minIneq){
-    double lower = this->joint_->q_lower() - this->joint_->q();
-    double upper = this->joint_->q_upper() - this->joint_->q();
+    double lower = this->joint_->q_lower();
+    double upper = this->joint_->q_upper();
+    lower += std::min(this->tolerance_, (upper - lower) / 2.0);
+    upper -= std::min(this->tolerance_, (upper - lower) / 2.0);
+    lower -= this->joint_->q();
+    upper -= this->joint_->q();
 
     // this->minIneq_, this->maxIneq_を作る
     if(minIneq.rows() != 1) minIneq = Eigen::VectorXd(1);

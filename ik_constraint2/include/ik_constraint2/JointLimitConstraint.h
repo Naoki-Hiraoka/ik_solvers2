@@ -12,6 +12,7 @@ namespace ik_constraint2{
     //  maxError: エラーの頭打ち
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
     //  precision: 収束判定の閾値. error * weightと比べる
+    //  tolerance: limitからこの値以上離す[m, rad]
 
     const cnoid::LinkPtr& joint() const { return joint_;}
     cnoid::LinkPtr& joint() { return joint_;}
@@ -21,6 +22,8 @@ namespace ik_constraint2{
     double& precision() { return precision_;}
     const double& weight() const { return weight_;}
     double& weight() { return weight_;}
+    const double& tolerance() const { return tolerance_;}
+    double& tolerance() { return tolerance_;}
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () override;
@@ -41,6 +44,7 @@ namespace ik_constraint2{
     double precision_ = 1e-3;
     double maxError_ = 0.05;
     double weight_ = 1.0;
+    double tolerance_ = 1e-3;
 
     double current_lower_ = 0.0;
     double current_upper_ = 0.0;

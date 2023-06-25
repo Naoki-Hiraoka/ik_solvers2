@@ -18,6 +18,8 @@ namespace ik_constraint2_joint_limit_table{
         upper = std::min(upper, this->jointLimitTables_[i]->getUlimit());
       }
     }
+    lower += std::min(this->tolerance_, (upper - lower) / 2.0);
+    upper -= std::min(this->tolerance_, (upper - lower) / 2.0);
     lower -= this->joint_->q();
     upper -= this->joint_->q();
 
