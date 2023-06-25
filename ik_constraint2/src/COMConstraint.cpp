@@ -122,7 +122,7 @@ namespace ik_constraint2{
     for(int i=0;i<this->maxIneq_.size();i++){
       if(this->maxIneq_[i] < 0.0) cost2 += std::pow(this->maxIneq_[i], 2);
     }
-    return this->eq_.norm() < this->precision_ && cost2 < std::pow(this->CPrecision_,2);
+    return this->eq_.norm() <= this->precision_ && cost2 <= std::pow(this->CPrecision_,2);
   }
 
   double COMConstraint::distance() const{

@@ -80,7 +80,7 @@ namespace ik_constraint2{
     for(int i=0;i<this->maxIneq_.size();i++){
       if(this->maxIneq_[i] < 0.0) cost2 += std::pow(this->maxIneq_[i], 2);
     }
-    return cost2 < std::pow(this->precision_,2);
+    return cost2 <= std::pow(this->precision_,2);
   }
 
   double JointLimitConstraint::distance() const{

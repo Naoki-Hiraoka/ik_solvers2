@@ -241,7 +241,7 @@ namespace ik_constraint2{
 
   bool RegionConstraint::isSatisfied () const {
     Eigen::VectorXd current = this->C_ * this->current_error_eval_.head<3>();
-    return std::sqrt(this->current_error_eval_.tail<3>().squaredNorm() + (this->dl_-current).array().max(0.0).matrix().squaredNorm() + (this->du_-current).array().min(0.0).matrix().squaredNorm()) < this->precision_;
+    return std::sqrt(this->current_error_eval_.tail<3>().squaredNorm() + (this->dl_-current).array().max(0.0).matrix().squaredNorm() + (this->du_-current).array().min(0.0).matrix().squaredNorm()) <= this->precision_;
   }
 
   double RegionConstraint::distance () const {

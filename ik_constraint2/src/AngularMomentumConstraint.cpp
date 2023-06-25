@@ -230,7 +230,7 @@ namespace ik_constraint2{
   }
 
   bool AngularMomentumConstraint::isSatisfied() const{
-    return this->eq_.norm() < this->precision_;
+    return this->eq_.norm() <= this->precision_;
   }
 
   double AngularMomentumConstraint::distance() const{

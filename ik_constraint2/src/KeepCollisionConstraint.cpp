@@ -148,7 +148,7 @@ namespace ik_constraint2{
   }
 
   bool KeepCollisionConstraint::isSatisfied() const{
-    return this->currentDistance_+this->tolerance_ < this->precision_;
+    return this->currentDistance_+this->tolerance_ <= this->precision_;
   }
 
   double KeepCollisionConstraint::distance() const{

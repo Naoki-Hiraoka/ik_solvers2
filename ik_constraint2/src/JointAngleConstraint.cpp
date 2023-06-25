@@ -76,7 +76,7 @@ namespace ik_constraint2{
   }
 
   bool JointAngleConstraint::isSatisfied() const{
-    return this->eq_.norm() < this->precision_;
+    return this->eq_.norm() <= this->precision_;
   }
 
   double JointAngleConstraint::distance() const{

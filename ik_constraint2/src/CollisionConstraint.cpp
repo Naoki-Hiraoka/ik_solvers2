@@ -106,9 +106,9 @@ namespace ik_constraint2{
 
   bool CollisionConstraint::isSatisfied() const{
     if(!this->invert_){
-      return this->currentDistance_-this->tolerance_ > -this->precision_;
+      return this->currentDistance_-this->tolerance_ >= -this->precision_;
     }else{
-      return this->currentDistance_-this->tolerance_ < this->precision_;
+      return this->currentDistance_-this->tolerance_ <= this->precision_;
     }
   }
 
