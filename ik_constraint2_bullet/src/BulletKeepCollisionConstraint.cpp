@@ -10,7 +10,7 @@ namespace ik_constraint2_bullet{
                                                          Eigen::SparseMatrix<double,Eigen::RowMajor>& A_C, // ? * 3. linkA local frame. pとAが干渉するためのpの条件
                                                          Eigen::VectorXd& A_dl,
                                                          Eigen::VectorXd& A_du,
-                                                         Eigen::SparseMatrix<double,Eigen::RowMajor>& B_C, // ? * 3. linkA local frame. pとBが干渉するためのpの条件
+                                                         Eigen::SparseMatrix<double,Eigen::RowMajor>& B_C, // ? * 3. linkB local frame. pとBが干渉するためのpの条件
                                                          Eigen::VectorXd& B_dl,
                                                          Eigen::VectorXd& B_du
                                                          )
@@ -77,7 +77,7 @@ namespace ik_constraint2_bullet{
                                                          );
         if(solved && dist < minDist){
           minDist = dist;
-          min_i = 0;
+          min_i = i;
           min_j = j;
           A_p = A_link->T() * A_localp;
           B_p = B_link->T() * B_localp;

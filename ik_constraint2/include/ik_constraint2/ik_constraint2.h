@@ -16,6 +16,7 @@
 #include <ik_constraint2/CollisionConstraint.h>
 #include <ik_constraint2/ClientCollisionConstraint.h>
 #include <ik_constraint2/KeepCollisionConstraint.h>
+#include <ik_constraint2/PointKeepCollisionConstraint.h>
 
 #endif
 

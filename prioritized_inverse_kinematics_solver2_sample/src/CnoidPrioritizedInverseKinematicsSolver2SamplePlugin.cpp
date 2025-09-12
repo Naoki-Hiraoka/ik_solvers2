@@ -76,6 +76,15 @@ namespace prioritized_inverse_kinematics_solver2_sample{
   };
   typedef cnoid::ref_ptr<sample6_keepItem> sample6_keepItemPtr;
 
+  void sample7_keep();
+  class sample7_keepItem : public choreonoid_viewer::ViewerBaseItem {
+  public:
+    static void initializeClass(cnoid::ExtensionManager* ext){ ext->itemManager().registerClass<sample7_keepItem>("sample7_keepItem"); }
+  protected:
+    virtual void main() override{ sample7_keep(); return; }
+  };
+  typedef cnoid::ref_ptr<sample7_keepItem> sample7_keepItemPtr;
+
   class PrioritizedInverseKinematicsSolver2SamplePlugin : public cnoid::Plugin
   {
   public:
@@ -94,6 +103,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
       sample4_regionItem::initializeClass(this);
       sample5_orItem::initializeClass(this);
       sample6_keepItem::initializeClass(this);
+      sample7_keepItem::initializeClass(this);
       return true;
     }
   };

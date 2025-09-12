@@ -7,7 +7,7 @@ namespace ik_constraint2{
   class KeepCollisionConstraint : public IKConstraint {
   public:
     // A_linkとB_linkを干渉させる.
-    //  tolerance: この値以上めりこませる[m]
+    //  tolerance: 各linkに対してこの値以上めりこませる[m]. (非推奨)
     //  precision: 収束判定の閾値. distance - torelanceと比べる
     //  maxError: エラーの頭打ち
     //  weight: コスト関数の重み. error * weight^2 * error. maxErrorの適用後に適用する
@@ -57,7 +57,7 @@ namespace ik_constraint2{
                                     Eigen::SparseMatrix<double,Eigen::RowMajor>& A_C, // ? * 3. linkA local frame. pとAが干渉するためのpの条件
                                     Eigen::VectorXd& A_dl,
                                     Eigen::VectorXd& A_du,
-                                    Eigen::SparseMatrix<double,Eigen::RowMajor>& B_C, // ? * 3. linkA local frame. pとBが干渉するためのpの条件
+                                    Eigen::SparseMatrix<double,Eigen::RowMajor>& B_C, // ? * 3. linkB local frame. pとBが干渉するためのpの条件
                                     Eigen::VectorXd& B_dl,
                                     Eigen::VectorXd& B_du
                                     )=0;
