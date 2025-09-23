@@ -6,7 +6,7 @@
 namespace ik_constraint2{
   class KeepCollisionConstraint : public IKConstraint {
   public:
-    // A_linkとB_linkを干渉させる.
+    // A_linkとB_linkを干渉させる. A_linkとB_linkはnullptrであってはならない.
     //  tolerance: 各linkに対してこの値以上めりこませる[m]. (非推奨)
     //  precision: 収束判定の閾値. distance - torelanceと比べる
     //  maxError: エラーの頭打ち
