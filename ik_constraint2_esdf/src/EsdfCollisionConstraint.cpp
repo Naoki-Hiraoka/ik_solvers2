@@ -203,7 +203,12 @@ namespace ik_constraint2_esdf{
       direction = this->prev_direction_;
       A_v = this->prev_A_localp_;
       B_v = this->prev_B_localp_;
-      distance = std::min(double(field->voxel_size()), ((A_link->T() * this->prev_A_localp_) - this->prev_B_localp_).dot(this->prev_direction_));
+      distance = std::min(double(field->voxel_size()), ((A_link->T() * this->prev_A_localp_) - this->prev_B_localp_).dot(this->prev_direction_));  // 最大でfield->voxel_size()の値になりうることに注意. tolerance - precision > voxel_sizeとせよ.
+
+      if((this->tolerance_ - this->precision_) < double(field->voxel_size())){
+        std::cerr << "[EsdfCollisionConstraint::computeDistance] tolerance - precision < voxel_size" << std::endl;
+      }
+
     }else{
       cnoid::Vector3 closest_point = fieldOrigin * closest_point_fieldLocal;
       cnoid::Vector3 closest_direction = fieldOrigin.linear() * closest_direction_fieldLocal;
