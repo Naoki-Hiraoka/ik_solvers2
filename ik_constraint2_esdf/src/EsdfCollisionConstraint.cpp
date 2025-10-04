@@ -191,11 +191,14 @@ namespace ik_constraint2_esdf{
     }
 
     if(min_dist_grad_invalid >= this->maxDistance_/*初期値*/){
-      // 障害物と遠すぎて近傍点が計算できていない
+      // 障害物と遠すぎて近傍点が計算できていない. ignoreDistanceをmaxDistance以下にして無視せよ
       distance = min_dist_grad_invalid;
       direction = cnoid::Vector3::UnitX(); // てきとう
-      A_v = closest_v_grad_invalid;
-      B_v = (A_link->T() * A_v) - direction * distance;
+      A_v = cnoid::Vector3::Zero(); // てきとう
+      B_v = cnoid::Vector3::Zero(); // てきとう
+      if(this->ignoreDistance_ >= this->maxDistance_){
+        std::cerr << "[EsdfCollisionConstraint::computeDistance] ignoreDistance >= maxDistance" << std::endl;
+      }
     }else if (min_dist >= this->maxDistance_/*初期値*/ ||
               min_dist_grad_invalid < min_dist) {
       // 障害物と近すぎて近傍点が計算できていない
