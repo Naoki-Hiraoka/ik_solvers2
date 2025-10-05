@@ -35,6 +35,10 @@ namespace ik_constraint2{
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
       std::cerr << "direction" << std::endl;
       std::cerr << this->currentDirection_.transpose() << std::endl;
+      std::cerr << "A_currentLocalp" << std::endl;
+      std::cerr << this->A_currentLocalp_.transpose() << std::endl;
+      std::cerr << "B_currentLocalp" << std::endl;
+      std::cerr << this->B_currentLocalp_.transpose() << std::endl;
       std::cerr << "minIneq" << std::endl;
       std::cerr << this->minIneq_.transpose() << std::endl;
       std::cerr << "maxIneq" << std::endl;

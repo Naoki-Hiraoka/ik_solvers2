@@ -26,6 +26,8 @@ namespace ik_constraint2{
 
     if(this->debugLevel_>=2){
       std::cerr << "ORConstraint " << this->activeIdx_ <<  std::endl;
+      std::cerr << "activeIdx" << std::endl;
+      std::cerr << this->activeIdx_ << std::endl;
       std::cerr << "eq" << std::endl;
       std::cerr << this->eq_.transpose() << std::endl;
       std::cerr << "minIneq" << std::endl;
