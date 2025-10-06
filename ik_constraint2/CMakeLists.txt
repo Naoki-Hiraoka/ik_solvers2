@@ -39,6 +39,7 @@ add_library(${PROJECT_NAME}
   src/JointVelocityConstraint.cpp
   src/JointDisplacementConstraint.cpp
   src/CollisionConstraint.cpp
+  src/MultiCollisionConstraint.cpp
   src/ClientCollisionConstraint.cpp
   src/KeepCollisionConstraint.cpp
   src/PointKeepCollisionConstraint.cpp

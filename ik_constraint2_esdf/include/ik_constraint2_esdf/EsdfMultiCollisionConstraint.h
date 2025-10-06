@@ -1,13 +1,18 @@
-#ifndef IK_CONSTRAINT2_ESDF_ESDFCOLLISIONCONSTRAINT_H
-#define IK_CONSTRAINT2_ESDF_ESDFCOLLISIONCONSTRAINT_H
+#ifndef IK_CONSTRAINT2_ESDF_ESDFMULTICOLLISIONCONSTRAINT_H
+#define IK_CONSTRAINT2_ESDF_ESDFMULTICOLLISIONCONSTRAINT_H
 
-#include <ik_constraint2/CollisionConstraint.h>
+#include <ik_constraint2/MultiCollisionConstraint.h>
 #include <voxblox/core/esdf_map.h>
 
 namespace ik_constraint2_esdf{
   // B_linkはnullptrでなければならない. A_linkとdistancefieldの干渉を評価する
-  class EsdfCollisionConstraint : public ik_constraint2::CollisionConstraint {
+  // 最近傍点 + epsilonまでの距離の点を考慮する. ただし、resolution2で間引きする.
+  // EsdfCollisionConstraintよりも振動的になりにくい
+  class EsdfMultiCollisionConstraint : public ik_constraint2::MultiCollisionConstraint {
   public:
+    bool& usePrevValue() { return usePrevValue_; }
+    const bool& usePrevValue() const { return usePrevValue_; }
+
     class BoundingBox {
     public:
       cnoid::Isometry3 localPose = cnoid::Isometry3::Identity();
@@ -53,12 +58,14 @@ namespace ik_constraint2_esdf{
     const double& minDistance() const { return minDistance_; }
     double& maxDistance() { return maxDistance_; }
     const double& maxDistance() const { return maxDistance_; }
+    double& epsilon() { return epsilon_; }
+    const double& epsilon() const { return epsilon_; }
     std::vector<BoundingBox >& ignoreBoundingBox() { return this->ignoreBoundingBox_; }
     const std::vector<BoundingBox >& ignoreBoundingBox() const { return this->ignoreBoundingBox_; }
 
     // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
     virtual std::shared_ptr<ik_constraint2::IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
-    void copy(std::shared_ptr<EsdfCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
+    void copy(std::shared_ptr<EsdfMultiCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
     // ユーザーは使わない. copy()の中で使われる
     cnoid::LinkPtr& A_link_vertices() { return A_link_vertices_; }
@@ -66,22 +73,23 @@ namespace ik_constraint2_esdf{
 
   protected:
     //A_v, B_vはlocal系
-    virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, cnoid::Vector3& direction/*B->A*/, cnoid::Vector3& A_v, cnoid::Vector3& B_v) override;
+    virtual bool computeDistance(const cnoid::LinkPtr A_link, const cnoid::LinkPtr B_link, double& distance, std::vector<double>& distances, std::vector<cnoid::Vector3>& direction/*B->A*/, std::vector<cnoid::Vector3>& A_v, std::vector<cnoid::Vector3>& B_v) override;
+
+    bool usePrevValue_ = false;
 
     double resolution_ = 0.02;
     std::shared_ptr<voxblox::EsdfMap> field_ = nullptr;
     cnoid::Isometry3 fieldOrigin_ = cnoid::Isometry3::Identity();
     double minDistance_ = -0.02;
     double maxDistance_ = 0.5;
+    double epsilon_ = 0.05;
+    double resolution2_ = 0.3;
     std::vector<BoundingBox > ignoreBoundingBox_;
 
     std::vector<cnoid::Vector3> A_vertices_; // A_link_のvertices. link local
     cnoid::LinkPtr A_link_vertices_; // A_vertices計算時のA_link_
-
-    cnoid::Vector3 prev_A_localp_ = cnoid::Vector3::Zero();
-    cnoid::Vector3 prev_B_localp_ = cnoid::Vector3::Zero();
-    cnoid::Vector3 prev_direction_ = cnoid::Vector3::UnitX();
-    double prev_dist_ = 0.0;
+    std::vector<std::vector<std::vector<bool> > > A_bin_;
+    cnoid::Vector3 A_min_;
 
   private:
     void dummy();

@@ -31,6 +31,8 @@ include_directories(
 
 add_library(${PROJECT_NAME}
   src/EsdfCollisionConstraint.cpp
+  src/EsdfMultiCollisionConstraint.cpp
+  src/util.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
