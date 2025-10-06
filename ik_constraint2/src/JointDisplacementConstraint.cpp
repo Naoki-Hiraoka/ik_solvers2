@@ -63,8 +63,9 @@ namespace ik_constraint2{
       this->jacobianIneq_ = Eigen::SparseMatrix<double,Eigen::RowMajor>(rows,cols);
 
       if(this->jacobianineqColMap_.find(this->jacobianineq_joint_) != this->jacobianineqColMap_.end()){
+        const int idx = this->jacobianineqColMap_[this->jacobianineq_joint_];
         for(size_t i=0;i<rows;i++){
-          this->jacobianIneq_.insert(i,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = 1;
+          this->jacobianIneq_.insert(i,idx+i) = 1;
         }
       }
 
@@ -76,8 +77,9 @@ namespace ik_constraint2{
       else if (this->jacobianineq_joint_->isFreeJoint()) rows = 6;
       else rows = 0;
 
+      const int idx = this->jacobianineqColMap_[this->jacobianineq_joint_];
       for(size_t i=0;i<rows;i++){
-        this->jacobianIneq_.coeffRef(i,this->jacobianineqColMap_[this->jacobianineq_joint_]+i) = this->weight_;
+        this->jacobianIneq_.coeffRef(i,idx+i) = this->weight_;
       }
     }
 
