@@ -6,6 +6,11 @@
 
 namespace ik_constraint2{
   void KeepCollisionConstraint::updateBounds () {
+    if(this->tolerance_ != 0.0) {
+      std::cerr << "[KeepCollisionConstraint::updateBounds] tolerance != 0" << std::endl;
+      this->tolerance_ = 0.0; // B_linkはpointなのでB_link内にめり込ませることできない. 代わりにshrinkAを使うこと.
+    }
+
     // minIneq/maxIneqの計算
 
     if(this->A_link_ == nullptr ||
