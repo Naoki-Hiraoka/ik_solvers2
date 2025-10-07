@@ -6,6 +6,7 @@
 #include <ik_constraint2/ANDConstraint.h>
 #include <ik_constraint2/PositionConstraint.h>
 #include <ik_constraint2/RegionConstraint.h>
+#include <ik_constraint2/RegionConstraint2.h>
 #include <ik_constraint2/COMConstraint.h>
 #include <ik_constraint2/AngularMomentumConstraint.h>
 #include <ik_constraint2/JointAngleConstraint.h>

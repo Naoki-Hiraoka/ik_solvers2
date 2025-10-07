@@ -31,6 +31,7 @@ add_library(${PROJECT_NAME}
   src/ANDConstraint.cpp
   src/PositionConstraint.cpp
   src/RegionConstraint.cpp
+  src/RegionConstraint2.cpp
   src/COMConstraint.cpp
   src/AngularMomentumConstraint.cpp
   src/JointAngleConstraint.cpp
