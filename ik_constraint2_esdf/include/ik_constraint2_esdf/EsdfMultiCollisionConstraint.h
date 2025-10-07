@@ -60,6 +60,8 @@ namespace ik_constraint2_esdf{
     const double& maxDistance() const { return maxDistance_; }
     double& epsilon() { return epsilon_; }
     const double& epsilon() const { return epsilon_; }
+    double& resolution2() { return resolution2_; }
+    const double& resolution2() const { return resolution2_; }
     std::vector<BoundingBox >& ignoreBoundingBox() { return this->ignoreBoundingBox_; }
     const std::vector<BoundingBox >& ignoreBoundingBox() const { return this->ignoreBoundingBox_; }
 
@@ -83,7 +85,7 @@ namespace ik_constraint2_esdf{
     double minDistance_ = -0.02;
     double maxDistance_ = 0.5;
     double epsilon_ = 0.05;
-    double resolution2_ = 0.3;
+    double resolution2_ = 0.2;
     std::vector<BoundingBox > ignoreBoundingBox_;
 
     std::vector<cnoid::Vector3> A_vertices_; // A_link_のvertices. link local
