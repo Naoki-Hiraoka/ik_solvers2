@@ -37,8 +37,8 @@ namespace ik_constraint2{
     if(this->minIneq_.rows() != this->C_.rows()) this->minIneq_ = Eigen::VectorXd(this->C_.rows());
     if(this->maxIneq_.rows() != this->C_.rows()) this->maxIneq_ = Eigen::VectorXd(this->C_.rows());
     cnoid::VectorX Ce = this->C_ * error_eval;
-    cnoid::VectorX u = this->du_ - Ce;
-    cnoid::VectorX l = this->dl_ - Ce;
+    cnoid::VectorX u = this->du_ - Ce - this->CTolerance_ * cnoid::VectorX::Ones(this->du_.rows());
+    cnoid::VectorX l = this->dl_ - Ce + this->CTolerance_ * cnoid::VectorX::Ones(this->du_.rows());
     for(size_t i=0; i<u.size(); i++){
       this->maxIneq_[i] = std::max(u[i],-this->maxCErrorVec_[i]);
       this->minIneq_[i] = std::min(l[i],this->maxCErrorVec_[i]);

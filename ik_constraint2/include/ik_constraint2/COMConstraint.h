@@ -51,6 +51,8 @@ namespace ik_constraint2{
     double& maxCError() { return maxCError_;}
     const double& CPrecision() const { return CPrecision_;}
     double& CPrecision() { return CPrecision_;}
+    const double& CTolerance() const { return CTolerance_;}
+    double& CTolerance() { return CTolerance_;}
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () override;
@@ -83,6 +85,7 @@ namespace ik_constraint2{
     cnoid::VectorX maxCErrorVec_;
     double maxCError_ = 0.05;
     double CPrecision_ = 1e-3;
+    double CTolerance_ = 0.0;
 
     cnoid::SgLineSetPtr lines_;
     cnoid::Vector3 current_error_eval_ = cnoid::Vector3::Zero();
