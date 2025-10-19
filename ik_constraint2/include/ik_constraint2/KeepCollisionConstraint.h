@@ -97,6 +97,8 @@ namespace ik_constraint2{
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_A_ext_local_; // p-Aのヤコビアン(A local)
     Eigen::SparseMatrix<double,Eigen::RowMajor> jacobian_B_ext_local_; // p-Bのヤコビアン(A local)
 
+    cnoid::SgPointSetPtr points_ = nullptr;
+    std::vector<cnoid::SgNodePtr> dummyDrawOnObjects_;
   };
 }
 

@@ -165,6 +165,22 @@ namespace ik_constraint2{
   }
 
   std::vector<cnoid::SgNodePtr>& KeepCollisionConstraint::getDrawOnObjects(){
+    if(this->points_ == nullptr){
+      this->points_ = new cnoid::SgPointSet;
+      this->points_->setPointSize(20.0);
+      this->points_->getOrCreateColors()->resize(1);
+      this->points_->getOrCreateColors()->at(0) = cnoid::Vector3f(0.5,0.0,0.0);
+      this->points_->getOrCreateVertices()->resize(1);
+      this->points_->colorIndices().resize(1);
+      this->points_->colorIndices()[0] = 0.0;
+
+      this->drawOnObjects_ = std::vector<cnoid::SgNodePtr>{this->points_};
+    }
+
+    if(this->currentDistance_ <= -this->ignorePenetration_) return this->dummyDrawOnObjects_;
+
+    this->points_->getOrCreateVertices()->at(0) = this->currentp_.cast<cnoid::Vector3f::Scalar>();
+
     return this->drawOnObjects_;
   }
 
