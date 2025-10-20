@@ -38,7 +38,7 @@ namespace ik_constraint2{
     if(this->maxIneq_.rows() != this->C_.rows()) this->maxIneq_ = Eigen::VectorXd(this->C_.rows());
     cnoid::VectorX Ce = this->C_ * error_eval;
     cnoid::VectorX u = this->du_ - Ce - this->CTolerance_ * cnoid::VectorX::Ones(this->du_.rows());
-    cnoid::VectorX l = this->dl_ - Ce + this->CTolerance_ * cnoid::VectorX::Ones(this->du_.rows());
+    cnoid::VectorX l = this->dl_ - Ce + this->CTolerance_ * cnoid::VectorX::Ones(this->dl_.rows());
     for(size_t i=0; i<u.size(); i++){
       this->maxIneq_[i] = std::max(u[i],-this->maxCErrorVec_[i]);
       this->minIneq_[i] = std::min(l[i],this->maxCErrorVec_[i]);
@@ -115,14 +115,15 @@ namespace ik_constraint2{
   }
 
   bool COMConstraint::isSatisfied() const{
-    double cost2=0.0;
+    if(this->eq_.norm() > this->precision_) return false;
+
     for(int i=0;i<this->minIneq_.size();i++){
-      if(this->minIneq_[i] > 0.0) cost2 += std::pow(this->minIneq_[i], 2);
+      if(this->minIneq_[i] > this->CPrecision_) return false;
     }
     for(int i=0;i<this->maxIneq_.size();i++){
-      if(this->maxIneq_[i] < 0.0) cost2 += std::pow(this->maxIneq_[i], 2);
+      if(this->maxIneq_[i] < - this->CPrecision_) return false;
     }
-    return this->eq_.norm() <= this->precision_ && cost2 <= std::pow(this->CPrecision_,2);
+    return true;
   }
 
   double COMConstraint::distance() const{
