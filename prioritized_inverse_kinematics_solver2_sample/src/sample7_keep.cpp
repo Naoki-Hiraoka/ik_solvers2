@@ -69,7 +69,7 @@ namespace prioritized_inverse_kinematics_solver2_sample{
                                                constraint->A_FACE_C()[0],
                                                constraint->A_FACE_dl()[0],
                                                constraint->A_FACE_du()[0]);
-    constraint->B_link() = candidate->rootLink();
+
     for(int i=-10;i<=10;i++){
       for(int j=-10;j<=10;j++){
         constraint->B_POINT().push_back(cnoid::Vector3(0.1*i,0.1*j,0));
@@ -114,7 +114,13 @@ namespace prioritized_inverse_kinematics_solver2_sample{
                                                                         constraints,
                                                                         tasks,
                                                                         param);
-      std::vector<cnoid::SgNodePtr> markers = moveconstraint->getDrawOnObjects();
+      std::vector<cnoid::SgNodePtr> markers;
+      for(int j=0;j<constraints.size();j++){
+        for(int k=0;k<constraints[j].size(); k++){
+          const std::vector<cnoid::SgNodePtr>& marker = constraints[j][k]->getDrawOnObjects();
+          std::copy(marker.begin(), marker.end(), std::back_inserter(markers));
+        }
+      }
       viewer->drawOn(markers);
       viewer->drawObjects();
       std::this_thread::sleep_for(std::chrono::milliseconds(10));

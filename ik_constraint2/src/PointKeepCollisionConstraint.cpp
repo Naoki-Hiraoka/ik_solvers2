@@ -1,35 +1,27 @@
 #include <ik_constraint2/PointKeepCollisionConstraint.h>
+#include <ik_constraint2/Jacobian.h>
 #include <iostream>
 
 namespace ik_constraint2{
-  bool PointKeepCollisionConstraint::computeCommonPoint(const cnoid::LinkPtr A_link,
-                                                        const cnoid::LinkPtr B_link,
-                                                        cnoid::Vector3& p, // common point. world frame
-                                                        double& distance, // AとBの距離. 負の値はpenetration depth
-                                                        Eigen::SparseMatrix<double,Eigen::RowMajor>& A_C, // ? * 3. linkA local frame. pとAが干渉するためのpの条件
-                                                        Eigen::VectorXd& A_dl,
-                                                        Eigen::VectorXd& A_du,
-                                                        Eigen::SparseMatrix<double,Eigen::RowMajor>& B_C, // ? * 3. linkB local frame. pとBが干渉するためのpの条件
-                                                        Eigen::VectorXd& B_dl,
-                                                        Eigen::VectorXd& B_du
-                                                        )
-  {
-    if(A_link == nullptr ||
-       B_link == nullptr){
+  void PointKeepCollisionConstraint::updateBounds () {
+
+    // minIneq/maxIneqの計算
+
+    if(this->A_link_ == nullptr ||
+       this->B_POINT_.size() == 0){
       std::cerr << "[PointKeepCollisionConstraint::computeCommonPoint] assertion failed" << std::endl;
-      return false;
+      return;
     }
 
     if(this->A_FACE_C_.size() != this->A_FACE_dl_.size() ||
        this->A_FACE_C_.size() != this->A_FACE_du_.size()){
       std::cerr << __FUNCTION__ <<  "model A size mismatch" << this->A_FACE_C_.size() << " " << this->A_FACE_dl_.size() << " " << this->A_FACE_du_.size() << std::endl;
-      return false;
+      return;
     }
 
-    const Eigen::Isometry3d A_pose = (A_link) ? A_link->T() : Eigen::Isometry3d::Identity(); // world frame
+    const Eigen::Isometry3d A_pose = this->A_link_->T(); // world frame
     const Eigen::Isometry3d A_poseInv = A_pose.inverse();
-    const Eigen::Isometry3d B_pose = (B_link) ? B_link->T() : Eigen::Isometry3d::Identity(); // world frame
-    const Eigen::Isometry3d AtoB = A_poseInv * B_pose;
+    const Eigen::Isometry3d AtoB = A_poseInv;
 
     double minDist = std::numeric_limits<double>::max();
     int min_i = 0;
@@ -54,23 +46,119 @@ namespace ik_constraint2{
       }
     }
 
-    if(minDist == std::numeric_limits<double>::max()) return false;
+    this->currentDistance_ = minDist;
+    this->A_currentC_ = this->A_FACE_C_[min_i];
+    this->A_currentdl_ = this->A_FACE_dl_[min_i].array() + this->shrinkA_;
+    this->A_currentdu_ = this->A_FACE_du_[min_i].array() - this->shrinkA_;
+    this->currentp_ = this->B_POINT_[min_j];
 
-    distance = minDist;
-    A_C = this->A_FACE_C_[min_i];
-    A_dl = this->A_FACE_dl_[min_i].array() + this->shrinkA_;
-    A_du = this->A_FACE_du_[min_i].array() - this->shrinkA_;
-
-    if(this->I3_.rows() != 3){
-      this->I3_ = Eigen::SparseMatrix<double,Eigen::RowMajor>(3,3);
-      for(int i=0;i<3;i++) this->I3_.insert(i,i) = 1.0;
+    if(this->currentDistance_ > - this->ignorePenetration_){
+      Eigen::VectorXd currentA = this->A_currentC_ * (this->A_link_->T().inverse() * this->currentp_);
+      this->minIneq_ = (this->A_currentdl_ - currentA).array().min(this->maxError_) * this->weight_;
+      this->maxIneq_ = (this->A_currentdu_ - currentA).array().max(-this->maxError_) * this->weight_;
+    }else{
+      this->minIneq_.resize(0);
+      this->maxIneq_.resize(0);
     }
-    B_C = this->I3_;
-    B_dl = this->B_POINT_[min_j];
-    B_du = this->B_POINT_[min_j];
-    p = B_pose * this->B_POINT_[min_j];
 
-    return true;
+    if(this->debugLevel_>=2){
+      std::cerr << "PointKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
+      std::cerr << "distance: " << this->currentDistance_ << std::endl;
+      std::cerr << "currentp" << std::endl;
+      std::cerr << this->currentp_.transpose() << std::endl;
+      std::cerr << "A_currentC" << std::endl;
+      std::cerr << this->A_currentC_ << std::endl;
+      std::cerr << "A_currentdl" << std::endl;
+      std::cerr << this->A_currentdl_ << std::endl;
+      std::cerr << "A_currentdu" << std::endl;
+      std::cerr << this->A_currentdu_ << std::endl;
+      std::cerr << "minIneq" << std::endl;
+      std::cerr << this->minIneq_.transpose() << std::endl;
+      std::cerr << "maxIneq" << std::endl;
+      std::cerr << this->maxIneq_.transpose() << std::endl;
+    }
+  }
+
+  void PointKeepCollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+
+    // jacobianIneq_の計算
+    // 行列の初期化. 前回とcol形状が変わっていないなら再利用
+    if(!IKConstraint::isJointsSame(joints,this->jacobian_joints_)
+       || this->A_link_ != this->jacobian_A_link_){
+      this->jacobian_joints_ = joints;
+      this->jacobian_A_link_ = this->A_link_;
+
+      ik_constraint2::calc6DofJacobianShape(this->jacobian_joints_,//input
+                                            this->jacobian_A_link_,//input
+                                            this->jacobian_A_full_,
+                                            this->jacobianColMap_,
+                                            this->path_A_joints_
+                                            );
+    }
+
+    if(this->currentDistance_ <= - this->ignorePenetration_){
+      // this->jacobian_, this->jacobianIneq_のサイズだけそろえる
+      this->jacobian_.resize(0,this->jacobian_A_full_.cols());
+      this->jacobianIneq_.resize(0,this->jacobian_A_full_.cols());
+    }else{
+      ik_constraint2::calc6DofJacobianCoef(this->jacobian_joints_,//input
+                                           this->jacobian_A_link_,//input
+                                           cnoid::Vector3::Zero(),//input
+                                           this->jacobianColMap_,//input
+                                           this->path_A_joints_,//input
+                                           this->jacobian_A_full_
+                                           );
+
+      this->jacobian_.resize(0,this->jacobian_A_full_.cols());
+
+      Eigen::SparseMatrix<double,Eigen::RowMajor> A_R_sparse(3,3);
+      for(int i=0;i<3;i++) for(int j=0;j<3;j++) A_R_sparse.insert(i,j) = this->A_link_->R()(i,j);
+      this->jacobian_A_local_ = - A_R_sparse.transpose() * this->jacobian_A_full_.topRows<3>();
+      this->jacobian_A_local_ += IKConstraint::cross(this->A_link_->T().inverse() * this->currentp_) * A_R_sparse.transpose() * this->jacobian_A_full_.bottomRows<3>();
+
+      this->jacobianIneq_ = this->weight_ * this->A_currentC_ * this->jacobian_A_local_;
+
+    }
+
+    if(this->debugLevel_>=2){
+      std::cerr << "PointKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
+      std::cerr << "jacobianineq" << std::endl;
+      std::cerr << this->jacobianIneq_ << std::endl;
+    }
+
+    return;
+  }
+
+  bool PointKeepCollisionConstraint::isSatisfied() const{
+    return this->currentDistance_ <= this->precision_;
+  }
+
+  double PointKeepCollisionConstraint::distance() const{
+    return std::abs(std::max(this->currentDistance_, 0.0)) * this->weight_;
+  }
+
+  double PointKeepCollisionConstraint::margin() const{
+    return - (this->currentDistance_) * this->weight_;
+  }
+
+  std::vector<cnoid::SgNodePtr>& PointKeepCollisionConstraint::getDrawOnObjects(){
+    if(this->points_ == nullptr){
+      this->points_ = new cnoid::SgPointSet;
+      this->points_->setPointSize(20.0);
+      this->points_->getOrCreateColors()->resize(1);
+      this->points_->getOrCreateColors()->at(0) = cnoid::Vector3f(0.5,0.0,0.0);
+      this->points_->getOrCreateVertices()->resize(1);
+      this->points_->colorIndices().resize(1);
+      this->points_->colorIndices()[0] = 0.0;
+
+      this->drawOnObjects_ = std::vector<cnoid::SgNodePtr>{this->points_};
+    }
+
+    if(this->currentDistance_ <= -this->ignorePenetration_) return this->dummyDrawOnObjects_;
+
+    this->points_->getOrCreateVertices()->at(0) = this->currentp_.cast<cnoid::Vector3f::Scalar>();
+
+    return this->drawOnObjects_;
   }
 
   std::shared_ptr<ik_constraint2::IKConstraint> PointKeepCollisionConstraint::clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
@@ -80,7 +168,7 @@ namespace ik_constraint2{
   }
 
   void PointKeepCollisionConstraint::copy(std::shared_ptr<PointKeepCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
-    KeepCollisionConstraint::copy(ret, modelMap);
+    if(this->A_link_ && modelMap.find(this->A_link_->body()) != modelMap.end()) ret->A_link() = modelMap.find(this->A_link_->body())->second->link(this->A_link_->index());
   }
 
 }
