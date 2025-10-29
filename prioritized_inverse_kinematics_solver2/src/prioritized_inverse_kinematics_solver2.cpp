@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <set>
 #include <unordered_map>
+#include <thread>
+#include <mutex>
 #include <cnoid/TimeMeasure>
 
 namespace prioritized_inverse_kinematics_solver2 {
@@ -11,11 +13,42 @@ namespace prioritized_inverse_kinematics_solver2 {
     cnoid::TimeMeasure timer;
     if(param.debugLevel>0) timer.begin();
 
-    for ( int i=0; i<ikc_list.size(); i++ ) {
-      for(size_t j=0;j<ikc_list[i].size(); j++){
-        ikc_list[i][j]->updateBounds();
-        if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
+    if(param.threadsNum<=1){
+      for ( int i=0; i<ikc_list.size(); i++ ) {
+        for(size_t j=0;j<ikc_list[i].size(); j++){
+          ikc_list[i][j]->updateBounds();
+          if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
+        }
       }
+    }else{
+      int next_i = 0;
+      int next_j = 0;
+      std::mutex mtx;
+      std::vector<std::unique_ptr<std::thread> > threads;
+      for(int t=0;t<param.threadsNum;t++){
+        threads.push_back(std::make_unique<std::thread>([&]{
+          while(true){
+            int i, j;
+            {
+              std::lock_guard<std::mutex> lock(mtx);
+              if(next_i >= ikc_list.size()) return;
+              i = next_i;
+              j = next_j;
+              next_j += 1;
+              if(next_j >= ikc_list[next_i].size()){
+                next_j = 0;
+                next_i += 1;
+              }
+            }
+            ikc_list[i][j]->updateBounds();
+            if(updateJacobian) ikc_list[i][j]->updateJacobian(variables);
+          }
+                                                        }));
+      }
+      for(int t=0;t<threads.size();t++){
+        threads[t]->join();
+      }
+
     }
 
     for ( int i=0; i<rejections.size(); i++ ) {

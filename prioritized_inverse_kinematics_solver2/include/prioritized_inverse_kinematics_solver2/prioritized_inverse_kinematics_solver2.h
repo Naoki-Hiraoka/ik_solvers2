@@ -49,6 +49,7 @@ namespace prioritized_inverse_kinematics_solver2 {
     std::shared_ptr<choreonoid_viewer::Viewer> viewer = nullptr;
     int viewMilliseconds = 0; // 表示のためviewMillisecondsミリ秒だけ待つ. 負ならget_char().
 
+    unsigned int threadsNum = 1; // constraintsの更新(updateBounds, updateJacobian)を並列で行うスレッドの数
   };
   bool solveIKLoop (const std::vector<cnoid::LinkPtr>& variables,
                     const std::vector<std::vector<std::shared_ptr<ik_constraint2::IKConstraint> > >& ikc_list,
