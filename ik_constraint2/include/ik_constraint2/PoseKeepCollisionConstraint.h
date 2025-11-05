@@ -1,10 +1,10 @@
-#ifndef IK_CONSTRAINT2_POINTKEEPCOLLISIONCONSTRAINT_H
-#define IK_CONSTRAINT2_POINTKEEPCOLLISIONCONSTRAINT_H
+#ifndef IK_CONSTRAINT2_POSEKEEPCOLLISIONCONSTRAINT_H
+#define IK_CONSTRAINT2_POSEKEEPCOLLISIONCONSTRAINT_H
 
 #include <ik_constraint2/KeepCollisionConstraint.h>
 
 namespace ik_constraint2{
-  class PointKeepCollisionConstraint : public ik_constraint2::IKConstraint {
+  class PoseKeepCollisionConstraint : public ik_constraint2::IKConstraint {
   public:
     // A_linkと点群Bを干渉させる. A_linkはnullptrであってはならない.
     //  precision: 収束判定の閾値. distance - torelanceと比べる
@@ -15,8 +15,10 @@ namespace ik_constraint2{
 
     const cnoid::LinkPtr& A_link() const { return A_link_;}
     cnoid::LinkPtr& A_link() { return A_link_;}
+    const cnoid::Isometry3& A_localpos() const { return A_localpos_;}
+    cnoid::Isometry3& A_localpos() { return A_localpos_;}
 
-    // Aリンク形状のFACE表現. LinkA local frame. cols = 3
+    // Aリンク形状のFACE表現. LinkA local frame. cols = 6
     std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> >& A_FACE_C() { return A_FACE_C_; }
     const std::vector<Eigen::SparseMatrix<double,Eigen::RowMajor> >& A_FACE_C() const { return A_FACE_C_; }
     std::vector<Eigen::VectorXd>& A_FACE_dl() { return A_FACE_dl_; }
@@ -27,8 +29,8 @@ namespace ik_constraint2{
     double& shrinkA() { return shrinkA_;}
 
     // 点群B. LinkA local frame
-    std::vector<Eigen::Vector3d>& B_POINT() {return B_POINT_;}
-    const std::vector<Eigen::Vector3d>& B_POINT() const {return B_POINT_;}
+    std::vector<cnoid::Isometry3>& B_POSE() {return B_POSE_;}
+    const std::vector<cnoid::Isometry3>& B_POSE() const {return B_POSE_;}
     const double& maxError() const { return maxError_;}
     double& maxError() { return maxError_;}
     const double& precision() const { return precision_;}
@@ -37,7 +39,7 @@ namespace ik_constraint2{
     double& weight() { return weight_;}
     const double& ignorePenetration() const { return ignorePenetration_;}
     double& ignorePenetration() { return ignorePenetration_;}
-    const cnoid::Vector3& currentp() const { return currentp_;}
+    const cnoid::Isometry3& currentp() const { return currentp_;}
 
     // 内部状態更新. eq, minIneq, maxIneqを生成
     virtual void updateBounds () override;
@@ -54,21 +56,22 @@ namespace ik_constraint2{
     virtual std::vector<cnoid::SgNodePtr>& getDrawOnObjects() override;
     // 複製する. このとき、modelMapのkeyにあるロボットモデルに属するリンクは、valueに置き換える
     virtual std::shared_ptr<ik_constraint2::IKConstraint> clone(const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const override;
-    virtual void copy(std::shared_ptr<PointKeepCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
+    virtual void copy(std::shared_ptr<PoseKeepCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
   protected:
 
     cnoid::LinkPtr A_link_ = nullptr;
+    cnoid::Isometry3 A_localpos_ = cnoid::Isometry3::Identity();
     double maxError_ = 0.05;
     double precision_ = 1e-3;
     double weight_ = 1.0;
     double ignorePenetration_ = 0.1;
 
-    Eigen::SparseMatrix<double,Eigen::RowMajor> A_currentC_{0,3}; // ? x 3. linkA local frame
+    Eigen::SparseMatrix<double,Eigen::RowMajor> A_currentC_{0,6}; // ? x 3. linkA local frame
     Eigen::VectorXd A_currentdl_;
     Eigen::VectorXd A_currentdu_;
 
-    cnoid::Vector3 currentp_ = cnoid::Vector3::Zero(); //world frame
+    cnoid::Isometry3 currentp_ = cnoid::Isometry3::Identity(); //world frame
     double currentDistance_ = 0.0;
 
     std::vector<cnoid::LinkPtr> jacobian_joints_; // 前回のupdateJacobian時のjoints
@@ -85,7 +88,7 @@ namespace ik_constraint2{
     std::vector<Eigen::VectorXd> A_FACE_dl_;
     std::vector<Eigen::VectorXd> A_FACE_du_;
     double shrinkA_ = 0.0;
-    std::vector<Eigen::Vector3d> B_POINT_; // linkB local frame.
+    std::vector<cnoid::Isometry3> B_POSE_; // linkB local frame.
 
   };
 }
