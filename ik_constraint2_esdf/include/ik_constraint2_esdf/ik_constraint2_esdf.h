@@ -3,5 +3,6 @@
 
 #include <ik_constraint2_esdf/EsdfCollisionConstraint.h>
 #include <ik_constraint2_esdf/EsdfMultiCollisionConstraint.h>
+#include <ik_constraint2_esdf/util.h>
 
 #endif

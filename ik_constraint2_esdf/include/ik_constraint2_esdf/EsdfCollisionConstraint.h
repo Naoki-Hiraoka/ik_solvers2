@@ -61,6 +61,8 @@ namespace ik_constraint2_esdf{
     void copy(std::shared_ptr<EsdfCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const;
 
     // ユーザーは使わない. copy()の中で使われる
+    std::vector<cnoid::Vector3>& A_vertices() { return A_vertices_; }
+    const std::vector<cnoid::Vector3>& A_vertices() const { return A_vertices_; }
     cnoid::LinkPtr& A_link_vertices() { return A_link_vertices_; }
     const cnoid::LinkPtr& A_link_vertices() const { return A_link_vertices_; }
 
