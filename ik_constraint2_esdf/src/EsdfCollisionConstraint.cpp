@@ -78,8 +78,8 @@ namespace ik_constraint2_esdf{
       direction = cnoid::Vector3::UnitX(); // てきとう
       A_v = cnoid::Vector3::Zero(); // てきとう
       B_v = cnoid::Vector3::Zero(); // てきとう
-      if(this->ignoreDistance_ >= this->maxDistance_){
-        std::cerr << "[EsdfCollisionConstraint::computeDistance] ignoreDistance >= maxDistance" << std::endl;
+      if(this->ignoreDistance_ > this->maxDistance_){
+        std::cerr << "[EsdfCollisionConstraint::computeDistance] ignoreDistance > maxDistance" << std::endl;
       }
     }else if (min_dist >= this->maxDistance_/*初期値*/ ||
               min_dist_grad_invalid < min_dist) {
