@@ -3,9 +3,13 @@
 #include <ik_constraint2/MultiCollisionConstraint.h>
 #include <ik_constraint2/Jacobian.h>
 #include <cnoid/EigenUtil>
+#include <cnoid/TimeMeasure>
 
 namespace ik_constraint2{
   void MultiCollisionConstraint::updateBounds () {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
+
     // minIneq/maxIneqの計算
 
     if(!this->computeDistance(this->A_link_, this->B_link_,
@@ -44,7 +48,11 @@ namespace ik_constraint2{
       }
     }
 
-    if(this->debugLevel_>=1){
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "MultiCollisionConstraint::updateBounds time: " << time << "[s]." << std::endl;
+    }
+    if(this->debugLevel_>=2){
       std::cerr << "MultiCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
       for(int i=0;i<this->currentDistances_.size();i++){
@@ -64,6 +72,8 @@ namespace ik_constraint2{
   }
 
   void MultiCollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
 
     // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -122,7 +132,11 @@ namespace ik_constraint2{
       this->jacobian_.resize(0,this->jacobianIneq_.cols());
     }
 
-    if(this->debugLevel_>=1){
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "MultiCollisionConstraint::updateJacobian time: " << time << "[s]." << std::endl;
+    }
+    if(this->debugLevel_>=2){
       std::cerr << "MultiCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << " - " << (this->B_link_ ? this->B_link_->name() : "world") << std::endl;
       std::cerr << "jacobianineq" << std::endl;
       std::cerr << this->jacobianIneq_ << std::endl;

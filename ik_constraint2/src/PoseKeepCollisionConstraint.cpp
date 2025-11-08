@@ -1,9 +1,12 @@
 #include <ik_constraint2/PoseKeepCollisionConstraint.h>
 #include <ik_constraint2/Jacobian.h>
 #include <iostream>
+#include <cnoid/TimeMeasure>
 
 namespace ik_constraint2{
   void PoseKeepCollisionConstraint::updateBounds () {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
 
     // minIneq/maxIneqの計算
 
@@ -70,6 +73,10 @@ namespace ik_constraint2{
       this->maxIneq_.resize(0);
     }
 
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "PoseKeepCollisionConstraint::updateBounds time: " << time << "[s]." << std::endl;
+    }
     if(this->debugLevel_>=2){
       std::cerr << "PoseKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
@@ -90,6 +97,8 @@ namespace ik_constraint2{
   }
 
   void PoseKeepCollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
 
     // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -135,6 +144,10 @@ namespace ik_constraint2{
 
     }
 
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "PoseKeepCollisionConstraint::updateJacobian time: " << time << "[s]." << std::endl;
+    }
     if(this->debugLevel_>=2){
       std::cerr << "PoseKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
       std::cerr << "jacobianineq" << std::endl;

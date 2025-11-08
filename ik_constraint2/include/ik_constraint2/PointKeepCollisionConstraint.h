@@ -27,7 +27,7 @@ namespace ik_constraint2{
     double& shrinkA() { return shrinkA_;}
 
     // 点群B. LinkA local frame
-    std::vector<Eigen::Vector3d>& B_POINT() {return B_POINT_;}
+    std::vector<Eigen::Vector3d>& B_POINT() { B_POINT_changed_ = true; return B_POINT_;}
     const std::vector<Eigen::Vector3d>& B_POINT() const {return B_POINT_;}
     const double& maxError() const { return maxError_;}
     double& maxError() { return maxError_;}
@@ -87,6 +87,10 @@ namespace ik_constraint2{
     double shrinkA_ = 0.0;
     std::vector<Eigen::Vector3d> B_POINT_; // linkB local frame.
 
+    bool B_POINT_changed_ = false;
+    Eigen::MatrixXd B_POINT_mat_{4,0}; // linkB local frame.
+
+    std::vector<Eigen::MatrixXd> value; // メモリ確保回数を減らすため. B_POINTが巨大な場合に有用
   };
 }
 

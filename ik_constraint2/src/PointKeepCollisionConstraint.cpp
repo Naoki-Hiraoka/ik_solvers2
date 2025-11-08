@@ -1,9 +1,12 @@
 #include <ik_constraint2/PointKeepCollisionConstraint.h>
 #include <ik_constraint2/Jacobian.h>
 #include <iostream>
+#include <cnoid/TimeMeasure>
 
 namespace ik_constraint2{
   void PointKeepCollisionConstraint::updateBounds () {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
 
     // minIneq/maxIneqの計算
 
@@ -19,13 +22,25 @@ namespace ik_constraint2{
       return;
     }
 
+    if(this->B_POINT_changed_){
+      this->B_POINT_mat_.resize(4,this->B_POINT_.size());
+      for(int i=0;i<this->B_POINT_.size();i++){
+        this->B_POINT_mat_.block<3,1>(0,i) = this->B_POINT_[i];
+        this->B_POINT_mat_(3,i) = 1.0;
+      }
+      this->B_POINT_changed_ = false;
+    }
+
     const Eigen::Isometry3d A_pose = this->A_link_->T(); // world frame
     const Eigen::Isometry3d A_poseInv = A_pose.inverse();
     const Eigen::Isometry3d AtoB = A_poseInv;
+    const Eigen::MatrixXd AtoBmat = AtoB.matrix().topRows(3);
 
     double minDist = std::numeric_limits<double>::max();
     int min_i = 0;
     int min_j = 0;
+
+    this->value.resize(this->A_FACE_C_.size());
     for(int i=0;i<this->A_FACE_C_.size();i++){
       if(this->A_FACE_C_[i].rows()!=0 && this->A_FACE_C_[i].cols()!=3){
         std::cerr << __FUNCTION__ <<  "model A matrix size mismatch" << this->A_FACE_C_[i].rows() << "x" << this->A_FACE_C_[i].cols() << std::endl;
@@ -34,15 +49,19 @@ namespace ik_constraint2{
          this->A_FACE_C_[i].rows()!= this->A_FACE_du_[i].rows()){
         std::cerr << __FUNCTION__ <<  "model A matrix size mismatch" << this->A_FACE_C_[i].rows() << " " << this->A_FACE_dl_[i].rows() << " " << this->A_FACE_du_[i].rows() << std::endl;
       }
-      for(int j=0;j<this->B_POINT_.size();j++){
-        const Eigen::Vector3d b = AtoB * this->B_POINT_[j]; // linkA local frame
-        const Eigen::VectorXd value = this->A_FACE_C_[i] * b;
-        double dist = - std::min((this->A_FACE_du_[i] - value).minCoeff()-this->shrinkA_, (value - this->A_FACE_dl_[i]).minCoeff()-this->shrinkA_);
-        if(dist < minDist){
-          minDist = dist;
-          min_i = i;
-          min_j = j;
-        }
+      const Eigen::MatrixXd A_FACE_C = this->A_FACE_C_[i] * AtoBmat; // world frame
+      const Eigen::VectorXd A_FACE_du = this->A_FACE_du_[i].array() - this->shrinkA_;
+      const Eigen::VectorXd A_FACE_dl = this->A_FACE_dl_[i].array() + this->shrinkA_;
+      this->value[i].noalias() = A_FACE_C * this->B_POINT_mat_;
+      Eigen::Index minRow, minCol;
+      const double dist =
+        - (( - (this->value[i].colwise() - A_FACE_du).colwise().maxCoeff() )
+           .cwiseMin( (this->value[i].colwise() - A_FACE_dl).colwise().minCoeff() )
+           .maxCoeff(&minRow, &minCol));
+      if(dist < minDist){
+        minDist = dist;
+        min_i = i;
+        min_j = minCol;
       }
     }
 
@@ -53,7 +72,7 @@ namespace ik_constraint2{
     this->currentp_ = this->B_POINT_[min_j];
 
     if(this->currentDistance_ > - this->ignorePenetration_){
-      Eigen::VectorXd currentA = this->A_currentC_ * (this->A_link_->T().inverse() * this->currentp_);
+      Eigen::VectorXd currentA = this->A_currentC_ * (A_poseInv * this->currentp_);
       this->minIneq_ = (this->A_currentdl_ - currentA).array().min(this->maxError_) * this->weight_;
       this->maxIneq_ = (this->A_currentdu_ - currentA).array().max(-this->maxError_) * this->weight_;
     }else{
@@ -61,6 +80,10 @@ namespace ik_constraint2{
       this->maxIneq_.resize(0);
     }
 
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "PointKeepCollisionConstraint::updateBounds time: " << time << "[s]." << std::endl;
+    }
     if(this->debugLevel_>=2){
       std::cerr << "PointKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
       std::cerr << "distance: " << this->currentDistance_ << std::endl;
@@ -80,6 +103,8 @@ namespace ik_constraint2{
   }
 
   void PointKeepCollisionConstraint::updateJacobian (const std::vector<cnoid::LinkPtr>& joints) {
+    cnoid::TimeMeasure timer;
+    if(this->debugLevel_>=1) timer.begin();
 
     // jacobianIneq_の計算
     // 行列の初期化. 前回とcol形状が変わっていないなら再利用
@@ -120,6 +145,10 @@ namespace ik_constraint2{
 
     }
 
+    if(this->debugLevel_>=1) {
+      double time = timer.measure();
+      std::cerr << "PointKeepCollisionConstraint::updateJacobian time: " << time << "[s]." << std::endl;
+    }
     if(this->debugLevel_>=2){
       std::cerr << "PointKeepCollisionConstraint " << (this->A_link_ ? this->A_link_->name() : "world") << std::endl;
       std::cerr << "jacobianineq" << std::endl;
