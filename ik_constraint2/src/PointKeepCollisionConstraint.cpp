@@ -198,6 +198,7 @@ namespace ik_constraint2{
 
   void PointKeepCollisionConstraint::copy(std::shared_ptr<PointKeepCollisionConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
     if(this->A_link_ && modelMap.find(this->A_link_->body()) != modelMap.end()) ret->A_link() = modelMap.find(this->A_link_->body())->second->link(this->A_link_->index());
+    ret->points_ = nullptr;
   }
 
 }
