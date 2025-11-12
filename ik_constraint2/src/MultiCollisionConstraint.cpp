@@ -183,7 +183,10 @@ namespace ik_constraint2{
       this->drawOnObjects_ = std::vector<cnoid::SgNodePtr>{this->lines_};
     }
 
-    if(this->currentDistance_ >= this->ignoreDistance_) return this->dummyDrawOnObjects_;
+    if(this->currentDistance_ >= this->ignoreDistance_ ||
+       this->currentDistance_ <= this->fatalDistance_){
+      return this->dummyDrawOnObjects_;
+    }
 
     int numLines = this->currentDistances_.size();
     this->lines_->clearLines();
