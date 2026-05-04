@@ -89,6 +89,9 @@ namespace prioritized_inverse_kinematics_solver2 {
                     }
                     );
 
+
+  void frame2Link(std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links);
+
 }
 
 #endif

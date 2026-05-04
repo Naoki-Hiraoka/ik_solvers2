@@ -253,7 +253,7 @@ namespace prioritized_inverse_kinematics_solver2 {
     }
   }
 
-  inline void frame2Link(std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links){
+  void frame2Link(std::vector<double>& frame, const std::vector<cnoid::LinkPtr>& links){
     int idx = 0;
     for(int l=0;l<links.size();l++){
       if(links[l]->isRevoluteJoint() || links[l]->isPrismaticJoint()) {
