@@ -42,11 +42,7 @@ namespace ik_constraint2_joint_limit_table{
   void JointLimitMinMaxTableConstraint::copy(std::shared_ptr<JointLimitMinMaxTableConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
     JointLimitConstraint::copy(ret, modelMap);
     for(int i=0;i<ret->jointLimitTables().size();i++){
-      cnoid::LinkPtr self_joint = (ret->jointLimitTables()[i]->getSelfJoint() && modelMap.find(ret->jointLimitTables()[i]->getSelfJoint()->body()) != modelMap.end()) ? modelMap.find(ret->jointLimitTables()[i]->getSelfJoint()->body())->second->link(ret->jointLimitTables()[i]->getSelfJoint()->index()) : ret->jointLimitTables()[i]->getSelfJoint().get();
-      cnoid::LinkPtr target_joint = (ret->jointLimitTables()[i]->getTargetJoint() && modelMap.find(ret->jointLimitTables()[i]->getTargetJoint()->body()) != modelMap.end()) ? modelMap.find(ret->jointLimitTables()[i]->getTargetJoint()->body())->second->link(ret->jointLimitTables()[i]->getTargetJoint()->index()) : ret->jointLimitTables()[i]->getTargetJoint().get();
-      ret->jointLimitTables()[i] = std::make_shared<joint_limit_table::JointLimitTable>(self_joint, target_joint,
-                                                                                        ret->jointLimitTables()[i]->targetLlimitAngle(), ret->jointLimitTables()[i]->targetUlimitAngle(),
-                                                                                        ret->jointLimitTables()[i]->lLimitTable(), ret->jointLimitTables()[i]->uLimitTable());
+      ret->jointLimitTables()[i] = ret->jointLimitTables()[i]->clone(modelMap);
     }
   }
 
