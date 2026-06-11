@@ -20,6 +20,7 @@
 #include <ik_constraint2/KeepCollisionConstraint.h>
 #include <ik_constraint2/PointKeepCollisionConstraint.h>
 #include <ik_constraint2/PoseKeepCollisionConstraint.h>
+#include <ik_constraint2/BoundingBox.h>
 
 #endif
 

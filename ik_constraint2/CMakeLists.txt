@@ -27,6 +27,7 @@ include_directories(
 
 add_library(${PROJECT_NAME}
   src/Jacobian.cpp
+  src/BoundingBox.cpp
   src/ORConstraint.cpp
   src/ANDConstraint.cpp
   src/PositionConstraint.cpp

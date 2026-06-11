@@ -2,6 +2,7 @@
 #define IK_CONSTRAINT2_ESDF_ESDFMULTICOLLISIONCONSTRAINT_H
 
 #include <ik_constraint2/MultiCollisionConstraint.h>
+#include <ik_constraint2/BoundingBox.h>
 #include <voxblox/core/esdf_map.h>
 
 namespace ik_constraint2_esdf{
@@ -13,32 +14,7 @@ namespace ik_constraint2_esdf{
     bool& usePrevValue() { return usePrevValue_; }
     const bool& usePrevValue() const { return usePrevValue_; }
 
-    class BoundingBox {
-    public:
-      cnoid::Isometry3 localPose = cnoid::Isometry3::Identity();
-      cnoid::LinkPtr parentLink;
-      cnoid::Vector3 dimensions = cnoid::Vector3::Zero();
-
-      bool isInside(const cnoid::Vector3& p) {
-        cnoid::Vector3 plocal = worldPoseinv * p;
-        return
-          (plocal[0] < dimensions[0]/2) &&
-          (plocal[1] < dimensions[1]/2) &&
-          (plocal[2] < dimensions[2]/2) &&
-          (plocal[0] > -dimensions[0]/2) &&
-          (plocal[1] > -dimensions[1]/2) &&
-          (plocal[2] > -dimensions[2]/2);
-      }
-      void cacheParentLinkPose(){
-        if(parentLink){
-          worldPoseinv = (parentLink->T() * localPose).inverse();
-        }else{
-          worldPoseinv = Eigen::Isometry3d::Identity();
-        }
-      }
-    protected:
-      Eigen::Isometry3d worldPoseinv;
-    };
+    using BoundingBox = ik_constraint2::BoundingBox;
 
     /*
       resolution: linkのメッシュのvertexをチェックする間隔
