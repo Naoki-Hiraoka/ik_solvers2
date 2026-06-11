@@ -203,7 +203,7 @@ namespace ik_constraint2{
   }
 
   void AngularMomentumConstraint::copy(std::shared_ptr<AngularMomentumConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
-    if(modelMap.find(this->robot_) != modelMap.end()) ret->robot() = modelMap.find(this->robot_)->second;
+    ret->robot() = applyModelMap(this->robot_, modelMap);
   }
 
 }

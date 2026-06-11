@@ -94,8 +94,8 @@ namespace ik_constraint2{
   }
 
   void JointAngleConstraint::copy(std::shared_ptr<JointAngleConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
-    if(this->A_joint_ && modelMap.find(this->A_joint_->body()) != modelMap.end()) ret->A_joint() = modelMap.find(this->A_joint_->body())->second->link(this->A_joint_->index());
-    if(this->B_joint_ && modelMap.find(this->B_joint_->body()) != modelMap.end()) ret->B_joint() = modelMap.find(this->B_joint_->body())->second->link(this->B_joint_->index());
+    ret->A_joint() = applyModelMap(this->A_joint_, modelMap);
+    ret->B_joint() = applyModelMap(this->B_joint_, modelMap);
   }
 
 }

@@ -71,6 +71,12 @@ namespace ik_constraint2{
       m.insert(2,0) = -v[1]; m.insert(2,1) = v[0];
       return m;
     }
+    static inline cnoid::LinkPtr applyModelMap(const cnoid::LinkPtr& link, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) {
+      return (link && modelMap.find(link->body()) != modelMap.end()) ? modelMap.find(link->body())->second->link(link->index()) : link.get();
+    }
+    static inline cnoid::BodyPtr applyModelMap(const cnoid::BodyPtr& body, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) {
+      return (body && modelMap.find(body) != modelMap.end()) ? modelMap.find(body)->second : body;
+    }
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   protected:

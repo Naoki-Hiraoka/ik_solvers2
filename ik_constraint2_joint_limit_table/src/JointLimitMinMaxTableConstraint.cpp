@@ -45,6 +45,4 @@ namespace ik_constraint2_joint_limit_table{
       ret->jointLimitTables()[i] = ret->jointLimitTables()[i]->clone(modelMap);
     }
   }
-
-
 }

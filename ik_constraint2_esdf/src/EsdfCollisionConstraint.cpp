@@ -122,9 +122,9 @@ namespace ik_constraint2_esdf{
     CollisionConstraint::copy(ret, modelMap);
 
     //verticesは使いまわす
-    if(this->A_link_vertices_ && modelMap.find(this->A_link_vertices_->body()) != modelMap.end()) ret->A_link_vertices() = modelMap.find(this->A_link_vertices_->body())->second->link(this->A_link_vertices_->index());
+    ret->A_link_vertices() = applyModelMap(this->A_link_vertices_, modelMap);
     for(int i=0;i<ret->ignoreBoundingBox().size();i++){
-      if(ret->ignoreBoundingBox()[i].parentLink && modelMap.find(ret->ignoreBoundingBox()[i].parentLink->body()) != modelMap.end()) ret->ignoreBoundingBox()[i].parentLink = modelMap.find(ret->ignoreBoundingBox()[i].parentLink->body())->second->link(ret->ignoreBoundingBox()[i].parentLink->index());
+      ret->ignoreBoundingBox()[i].parentLink = applyModelMap(ret->ignoreBoundingBox()[i].parentLink, modelMap);
     }
   }
 

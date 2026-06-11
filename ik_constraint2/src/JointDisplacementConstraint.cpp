@@ -110,7 +110,7 @@ namespace ik_constraint2{
   }
 
   void JointDisplacementConstraint::copy(std::shared_ptr<JointDisplacementConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
-    if(this->joint_ && modelMap.find(this->joint_->body()) != modelMap.end()) ret->joint() = modelMap.find(this->joint_->body())->second->link(this->joint_->index());
+    ret->joint() = applyModelMap(this->joint_, modelMap);
   }
 
 }

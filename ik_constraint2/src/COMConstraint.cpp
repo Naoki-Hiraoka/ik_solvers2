@@ -175,8 +175,8 @@ namespace ik_constraint2{
   }
 
   void COMConstraint::copy(std::shared_ptr<COMConstraint> ret, const std::map<cnoid::BodyPtr, cnoid::BodyPtr>& modelMap) const {
-    if(modelMap.find(this->A_robot_) != modelMap.end()) ret->A_robot() = modelMap.find(this->A_robot_)->second;
-    if(modelMap.find(this->B_robot_) != modelMap.end()) ret->B_robot() = modelMap.find(this->B_robot_)->second;
+    ret->A_robot() = applyModelMap(this->A_robot_, modelMap);
+    ret->B_robot() = applyModelMap(this->B_robot_, modelMap);
     ret->lines_ = nullptr;
   }
 

@@ -123,8 +123,8 @@ namespace ik_constraint2_bullet{
     KeepCollisionConstraint::copy(ret, modelMap);
 
     //bulletModelは使いまわす
-    if(this->A_link_bulletModel_ && modelMap.find(this->A_link_bulletModel_->body()) != modelMap.end()) ret->A_link_bulletModel() = modelMap.find(this->A_link_bulletModel_->body())->second->link(this->A_link_bulletModel_->index());
-    if(this->B_link_bulletModel_ && modelMap.find(this->B_link_bulletModel_->body()) != modelMap.end()) ret->B_link_bulletModel() = modelMap.find(this->B_link_bulletModel_->body())->second->link(this->B_link_bulletModel_->index());
+    ret->A_link_bulletModel() = applyModelMap(this->A_link_bulletModel_, modelMap);
+    ret->B_link_bulletModel() = applyModelMap(this->B_link_bulletModel_, modelMap);
   }
 
 }
