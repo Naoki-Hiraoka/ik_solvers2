@@ -251,5 +251,6 @@ namespace sr_inverse_kinematics_solver {
         return satisfied;
       }
     }
+    return true; // never reach
   }
 }
