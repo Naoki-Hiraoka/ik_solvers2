@@ -8,7 +8,7 @@ namespace ik_constraint2{
   class PointContainer {
   public:
     std::unordered_map<Eigen::Vector3i, std::vector<Eigen::Vector3d>, decltype(&Vector3ihash)> points = std::unordered_map<Eigen::Vector3i, std::vector<Eigen::Vector3d>, decltype(&Vector3ihash)>(100,Vector3ihash);
-    double resolution=0.1;
+    double resolution=0.5;
     Eigen::Vector3d origin = Eigen::Vector3d::Zero();
     Eigen::Vector3i key(const Eigen::Vector3d& point);
   };
