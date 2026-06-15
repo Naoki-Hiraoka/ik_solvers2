@@ -46,6 +46,7 @@ add_library(${PROJECT_NAME}
   src/KeepCollisionConstraint.cpp
   src/PointKeepCollisionConstraint.cpp
   src/PoseKeepCollisionConstraint.cpp
+  src/PointKeepCollisionConstraint2.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
