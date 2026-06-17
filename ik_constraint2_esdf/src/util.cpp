@@ -70,7 +70,7 @@ namespace ik_constraint2_esdf{
     std::vector<std::pair<cnoid::Vector3, cnoid::Vector3> > vertices;
     cnoid::SgMeshPtr mesh = meshExtractor.integrate(link->collisionShape());
     if(mesh && (mesh->numTriangles() != 0)) {
-      meshFilter.generateNormals(mesh,M_PI,true);
+      meshFilter.generateNormals(mesh,0.0,true);
       mesh->updateBoundingBox();
       cnoid::BoundingBoxf bbx = mesh->boundingBox();
       cnoid::Vector3f bbxSize = bbx.max() - bbx.min();
